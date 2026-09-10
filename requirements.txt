@@ -1,0 +1,14 @@
+# Runtime dependencies.
+#
+# Pinned exactly: the image built in CI and the local virtual environment must
+# resolve the same versions, or a query that validates locally could behave
+# differently in QA.
+
+# MongoDB driver. Also provides bson, which the parser uses to turn
+# extended-JSON forms into real ObjectId, datetime and Decimal128 values.
+pymongo==4.18.1
+
+# Tolerant JSON parser. Query lines are written by hand in mongosh syntax, so
+# unquoted keys, single quotes and trailing commas are normal rather than
+# errors.
+json5==0.15.0

@@ -1,0 +1,4 @@
+# Development and test dependencies. Not installed into the container image.
+-r requirements.txt
+
+pytest==9.1.1
