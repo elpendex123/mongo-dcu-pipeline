@@ -1,6 +1,7 @@
 # Terraform
 .terraform/
-.terraform.lock.hcl
+# .terraform.lock.hcl is deliberately NOT ignored - it pins provider
+# versions so every apply resolves the same ones.
 *.tfstate
 *.tfstate.*
 *.tfvars
