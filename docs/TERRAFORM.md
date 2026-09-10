@@ -131,3 +131,114 @@ aws resourcegroupstaggingapi get-resources \
 - `terraform fmt -recursive` and `terraform validate` before every commit.
 - Names are derived, not hardcoded: the account ID comes from
   `data.aws_caller_identity.current`, so nothing breaks in another account.
+
+## The S3 module
+
+`terraform/modules/s3/` produces one environment's full set of buckets. It
+takes the project slug, the environment, the account ID and a list of bucket
+roles, and returns maps of role to name and role to ARN.
+
+```hcl
+module "buckets" {
+  source = "../../modules/s3"
+
+  project       = "mongo-dcu-pipeline"
+  environment   = "dev"
+  account_id    = data.aws_caller_identity.current.account_id
+  force_destroy = true
+}
+```
+
+Every bucket it creates gets versioning, SSE-S3 encryption, all four public
+access blocks, and a lifecycle rule expiring superseded versions after 30 days.
+
+Resources are keyed by role (`for_each` over a map) rather than by list index,
+so adding a sixth bucket later does not shift the others' addresses in state
+and force them to be recreated.
+
+The outputs are maps rather than five separate values because the consumers
+want them that way: the application reads bucket names from environment
+variables, and the IAM module scopes the pod's policy to exactly this
+environment's ARNs.
+
+| Environment | `force_destroy` | Why |
+|---|---|---|
+| `dev` | `true` | Created and destroyed constantly, holds only throwaway test files |
+| `qa` / `prod` | `false` | A destroy should fail loudly on a non-empty bucket rather than take real run history with it |
+
+## The dev environment
+
+`terraform/environments/dev/` is S3 only. The application, MongoDB and MySQL
+all run locally under Docker Compose, but the buckets are real - file pickup,
+the copy-then-delete move between buckets and report upload are exercised
+against actual S3 from the first local run. Storage for a handful of small text
+files is a fraction of a cent per month, so there is nothing to gain from
+faking it.
+
+Its `env_file_lines` output prints the bucket names in the exact form the local
+environment file wants, so nothing has to be transcribed by hand:
+
+```bash
+# variable form
+terraform -chdir=$PROJECT_ROOT/terraform/environments/dev output -raw env_file_lines
+
+# expanded
+terraform -chdir=~/Documents/PROJECTS/mongo-dcu-pipeline/terraform/environments/dev \
+  output -raw env_file_lines
+```
+
+## Dev S3 scripts
+
+Four thin wrappers in `scripts/`, deliberately not Jenkins jobs - dev is
+low-stakes enough to drive directly.
+
+| Script | Does |
+|---|---|
+| `dev-s3-create.sh` | `terraform apply` against `environments/dev`, then prints the bucket names and the environment file lines |
+| `dev-s3-destroy.sh` | `terraform destroy`, the ordinary teardown path, leaves state consistent |
+| `dev-s3-status.sh` | Read only: existence, object count, size, and whether versioning, encryption and public access blocking are actually on |
+| `dev-s3-nuke.sh` | Force-deletes the buckets through the AWS API with no reference to Terraform state |
+
+All four accept `--yes` to skip the confirmation prompt, and the destructive
+two refuse to run unattended without it rather than hanging on a prompt no one
+will answer in a Jenkins job.
+
+```bash
+# variable form
+$PROJECT_ROOT/scripts/dev-s3-create.sh
+$PROJECT_ROOT/scripts/dev-s3-status.sh
+$PROJECT_ROOT/scripts/dev-s3-destroy.sh --yes
+
+# expanded
+~/Documents/PROJECTS/mongo-dcu-pipeline/scripts/dev-s3-create.sh
+~/Documents/PROJECTS/mongo-dcu-pipeline/scripts/dev-s3-status.sh
+~/Documents/PROJECTS/mongo-dcu-pipeline/scripts/dev-s3-destroy.sh --yes
+```
+
+### Why nuke exists alongside destroy
+
+`terraform destroy` is the right tool when state is intact. `dev-s3-nuke.sh` is
+for when it is not - a partial apply, a lost state file, a resource deleted by
+hand outside Terraform. It finds the buckets by name and deletes them directly.
+
+Emptying a versioned bucket is the part worth knowing: `aws s3 rm --recursive`
+removes only current versions, leaving every previous version and every delete
+marker behind, and a bucket that still contains those cannot be deleted. The
+script pages through `list-object-versions` and deletes versions and delete
+markers together.
+
+After a nuke, dev's Terraform state still lists buckets that no longer exist.
+Reconcile by applying again:
+
+```bash
+# variable form
+terraform -chdir=$PROJECT_ROOT/terraform/environments/dev apply
+
+# expanded
+terraform -chdir=~/Documents/PROJECTS/mongo-dcu-pipeline/terraform/environments/dev apply
+```
+
+### Prerequisites
+
+`terraform`, `aws` (v2) and `jq`. Each script checks for what it needs up front
+and names anything missing, rather than failing midway with an opaque error.
