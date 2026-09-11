@@ -1,0 +1,4518 @@
+[
+  {
+    "_id": {
+      "$oid": "000000000000000000000001"
+    },
+    "property_id": "PROP-00001",
+    "address": {
+      "street": "4607 Cedar Ridge Ave",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 2.0,
+    "square_feet": 4534,
+    "lot_size_acres": 0.458,
+    "year_built": 1949,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1411000.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1071400.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-12-21T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "1314200.00"
+      },
+      "interest_rate": 5.841,
+      "term_years": 20
+    },
+    "current_owner": "Felix Hartley",
+    "tax_assessed_value": {
+      "$numberDecimal": "1325300.00"
+    },
+    "created_at": {
+      "$date": "2025-11-02T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-01-13T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000002"
+    },
+    "property_id": "PROP-00002",
+    "address": {
+      "street": "8705 Hickory Ave",
+      "city": "Silver Spring",
+      "state": "MD",
+      "zip": "20910"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 3.5,
+    "square_feet": 1223,
+    "lot_size_acres": 0.0,
+    "year_built": 1949,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "368000.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "365200.00"
+      },
+      "interest_rate": 7.489,
+      "term_years": 30
+    },
+    "current_owner": "Rosa Whitfield",
+    "tax_assessed_value": {
+      "$numberDecimal": "324000.00"
+    },
+    "created_at": {
+      "$date": "2026-03-09T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-09T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000003"
+    },
+    "property_id": "PROP-00003",
+    "address": {
+      "street": "4660 Laurel Dr",
+      "city": "Herndon",
+      "state": "VA",
+      "zip": "20170"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 4,
+    "bathrooms": 3.5,
+    "square_feet": 2377,
+    "lot_size_acres": 0.078,
+    "year_built": 1978,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "920600.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "792300.00"
+    },
+    "last_sold_date": {
+      "$date": "2025-01-27T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "710200.00"
+      },
+      "interest_rate": 4.868,
+      "term_years": 20
+    },
+    "current_owner": "Jonas Moreau",
+    "tax_assessed_value": {
+      "$numberDecimal": "734000.00"
+    },
+    "created_at": {
+      "$date": "2026-06-19T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-06T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000004"
+    },
+    "property_id": "PROP-00004",
+    "address": {
+      "street": "6150 Chestnut Ave",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 2.5,
+    "square_feet": 1290,
+    "lot_size_acres": 0.0,
+    "year_built": 1968,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "575100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "459800.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-08-06T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "436400.00"
+      },
+      "interest_rate": 5.764,
+      "term_years": 30
+    },
+    "current_owner": "Mei Kowalski",
+    "tax_assessed_value": {
+      "$numberDecimal": "519500.00"
+    },
+    "created_at": {
+      "$date": "2026-02-19T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-03T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000005"
+    },
+    "property_id": "PROP-00005",
+    "address": {
+      "street": "1138 Willow Creek Way",
+      "city": "Silver Spring",
+      "state": "MD",
+      "zip": "20910"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.0,
+    "square_feet": 924,
+    "lot_size_acres": 0.0,
+    "year_built": 1992,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "520500.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "435400.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-03-01T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "444800.00"
+      },
+      "interest_rate": 5.446,
+      "term_years": 30
+    },
+    "current_owner": "Andre Ahmadi",
+    "tax_assessed_value": {
+      "$numberDecimal": "420400.00"
+    },
+    "created_at": {
+      "$date": "2025-12-27T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-13T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000006"
+    },
+    "property_id": "PROP-00006",
+    "address": {
+      "street": "2194 Willow Creek Ln",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 4.5,
+    "square_feet": 3649,
+    "lot_size_acres": 0.197,
+    "year_built": 1986,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1392900.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1069100.00"
+      },
+      "interest_rate": 5.145,
+      "term_years": 15
+    },
+    "current_owner": "Thomas Petrov",
+    "tax_assessed_value": {
+      "$numberDecimal": "1238200.00"
+    },
+    "created_at": {
+      "$date": "2026-08-27T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-30T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000007"
+    },
+    "property_id": "PROP-00007",
+    "address": {
+      "street": "2524 Birchwood Pl",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20001"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 2.0,
+    "square_feet": 2163,
+    "lot_size_acres": 0.46,
+    "year_built": 1990,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "644800.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "500000.00"
+      },
+      "interest_rate": 5.889,
+      "term_years": 30
+    },
+    "current_owner": "Thomas Castellano",
+    "tax_assessed_value": {
+      "$numberDecimal": "614800.00"
+    },
+    "created_at": {
+      "$date": "2025-08-18T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-23T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000008"
+    },
+    "property_id": "PROP-00008",
+    "address": {
+      "street": "4442 Juniper Ave",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 3.0,
+    "square_feet": 2897,
+    "lot_size_acres": 0.295,
+    "year_built": 2023,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "1185100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1122400.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-07-14T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "902100.00"
+      },
+      "interest_rate": 4.891,
+      "term_years": 30
+    },
+    "current_owner": "Victor Whitfield",
+    "tax_assessed_value": {
+      "$numberDecimal": "1169600.00"
+    },
+    "created_at": {
+      "$date": "2026-06-04T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-14T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000009"
+    },
+    "property_id": "PROP-00009",
+    "address": {
+      "street": "778 Maple Rd",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20001"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 4.5,
+    "square_feet": 3393,
+    "lot_size_acres": 0.891,
+    "year_built": 1964,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "1907900.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1366500.00"
+    },
+    "last_sold_date": {
+      "$date": "2022-09-20T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "1718100.00"
+      },
+      "interest_rate": 7.562,
+      "term_years": 20
+    },
+    "current_owner": "Sofia Bergstrom",
+    "tax_assessed_value": {
+      "$numberDecimal": "1920400.00"
+    },
+    "created_at": {
+      "$date": "2026-06-15T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-06-29T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000000a"
+    },
+    "property_id": "PROP-00010",
+    "address": {
+      "street": "4001 Maple Rd",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 4.0,
+    "square_feet": 3771,
+    "lot_size_acres": 0.593,
+    "year_built": 2000,
+    "listing_status": "off_market",
+    "listing_price": {
+      "$numberDecimal": "2175800.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1682000.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-12-11T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "2090400.00"
+      },
+      "interest_rate": 5.586,
+      "term_years": 20
+    },
+    "current_owner": "Rosa Nakamura",
+    "tax_assessed_value": {
+      "$numberDecimal": "1931100.00"
+    },
+    "created_at": {
+      "$date": "2026-07-23T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-19T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000000b"
+    },
+    "property_id": "PROP-00011",
+    "address": {
+      "street": "1979 Sunset Ln",
+      "city": "Herndon",
+      "state": "VA",
+      "zip": "20170"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 1.5,
+    "square_feet": 1271,
+    "lot_size_acres": 0.109,
+    "year_built": 1952,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "782000.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "614800.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-09-21T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "664200.00"
+      },
+      "interest_rate": 7.722,
+      "term_years": 15
+    },
+    "current_owner": "Felix Okonkwo",
+    "tax_assessed_value": {
+      "$numberDecimal": "669100.00"
+    },
+    "created_at": {
+      "$date": "2025-08-09T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-11-13T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000000c"
+    },
+    "property_id": "PROP-00012",
+    "address": {
+      "street": "7579 Hickory Ln",
+      "city": "Rockville",
+      "state": "MD",
+      "zip": "20850"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 2.0,
+    "square_feet": 1734,
+    "lot_size_acres": 0.0,
+    "year_built": 1972,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1044900.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "793700.00"
+      },
+      "interest_rate": 4.967,
+      "term_years": 30
+    },
+    "current_owner": "Victor Ahmadi",
+    "tax_assessed_value": {
+      "$numberDecimal": "885900.00"
+    },
+    "created_at": {
+      "$date": "2025-11-22T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-02-08T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000000d"
+    },
+    "property_id": "PROP-00013",
+    "address": {
+      "street": "2479 Sunset Ln",
+      "city": "Silver Spring",
+      "state": "MD",
+      "zip": "20910"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 1.5,
+    "square_feet": 2524,
+    "lot_size_acres": 0.11,
+    "year_built": 1991,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1217000.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1088100.00"
+      },
+      "interest_rate": 7.259,
+      "term_years": 20
+    },
+    "current_owner": "Ibrahim Kowalski",
+    "tax_assessed_value": {
+      "$numberDecimal": "966200.00"
+    },
+    "created_at": {
+      "$date": "2026-01-14T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-02-24T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000000e"
+    },
+    "property_id": "PROP-00014",
+    "address": {
+      "street": "4985 Hickory Rd",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 1.0,
+    "square_feet": 1391,
+    "lot_size_acres": 0.0,
+    "year_built": 2013,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "459200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "346700.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-09-26T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "380000.00"
+      },
+      "interest_rate": 5.529,
+      "term_years": 30
+    },
+    "current_owner": "Felix Delacroix",
+    "tax_assessed_value": {
+      "$numberDecimal": "364900.00"
+    },
+    "created_at": {
+      "$date": "2025-10-23T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-04-05T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000000f"
+    },
+    "property_id": "PROP-00015",
+    "address": {
+      "street": "9491 Maple Ln",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 4.5,
+    "square_feet": 3462,
+    "lot_size_acres": 0.752,
+    "year_built": 1948,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "1128200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "801800.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-02-26T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "1080000.00"
+      },
+      "interest_rate": 6.366,
+      "term_years": 15
+    },
+    "current_owner": "Leah Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "1010300.00"
+    },
+    "created_at": {
+      "$date": "2026-03-16T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-05T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000010"
+    },
+    "property_id": "PROP-00016",
+    "address": {
+      "street": "7383 Cedar Ridge Dr",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 2.0,
+    "square_feet": 1722,
+    "lot_size_acres": 1.006,
+    "year_built": 1985,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "526500.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "382400.00"
+      },
+      "interest_rate": 6.151,
+      "term_years": 30
+    },
+    "current_owner": "Amara Petrov",
+    "tax_assessed_value": {
+      "$numberDecimal": "454800.00"
+    },
+    "created_at": {
+      "$date": "2026-04-01T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-25T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000011"
+    },
+    "property_id": "PROP-00017",
+    "address": {
+      "street": "7298 Dogwood Way",
+      "city": "Silver Spring",
+      "state": "MD",
+      "zip": "20910"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.0,
+    "square_feet": 1445,
+    "lot_size_acres": 0.0,
+    "year_built": 1981,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "577500.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "530300.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-09-14T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "524500.00"
+      },
+      "interest_rate": 6.677,
+      "term_years": 30
+    },
+    "current_owner": "Thomas Okonkwo",
+    "tax_assessed_value": {
+      "$numberDecimal": "468900.00"
+    },
+    "created_at": {
+      "$date": "2026-03-27T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-03T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000012"
+    },
+    "property_id": "PROP-00018",
+    "address": {
+      "street": "7531 Magnolia Ct",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20001"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 3.0,
+    "square_feet": 4198,
+    "lot_size_acres": 0.717,
+    "year_built": 1964,
+    "listing_status": "off_market",
+    "listing_price": {
+      "$numberDecimal": "2570600.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "2485600.00"
+    },
+    "last_sold_date": {
+      "$date": "2017-04-18T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "2280100.00"
+      },
+      "interest_rate": 7.114,
+      "term_years": 30
+    },
+    "current_owner": "Thomas Nakamura",
+    "tax_assessed_value": {
+      "$numberDecimal": "2490100.00"
+    },
+    "created_at": {
+      "$date": "2026-04-07T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-20T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000013"
+    },
+    "property_id": "PROP-00019",
+    "address": {
+      "street": "6682 Alder Way",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 1.0,
+    "square_feet": 816,
+    "lot_size_acres": 0.0,
+    "year_built": 2008,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "270900.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "200400.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-06-03T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "261700.00"
+      },
+      "interest_rate": 5.931,
+      "term_years": 30
+    },
+    "current_owner": "Jonas Santos",
+    "tax_assessed_value": {
+      "$numberDecimal": "245100.00"
+    },
+    "created_at": {
+      "$date": "2026-04-26T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-24T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000014"
+    },
+    "property_id": "PROP-00020",
+    "address": {
+      "street": "9368 Oak Hill Pl",
+      "city": "Arlington",
+      "state": "VA",
+      "zip": "22201"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 4,
+    "bathrooms": 2.0,
+    "square_feet": 2321,
+    "lot_size_acres": 0.096,
+    "year_built": 1985,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1369200.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1149600.00"
+      },
+      "interest_rate": 5.69,
+      "term_years": 15
+    },
+    "current_owner": "Felix Delacroix",
+    "tax_assessed_value": {
+      "$numberDecimal": "1362100.00"
+    },
+    "created_at": {
+      "$date": "2026-06-03T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-18T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000015"
+    },
+    "property_id": "PROP-00021",
+    "address": {
+      "street": "7052 Cedar Ridge Pl",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.5,
+    "square_feet": 1207,
+    "lot_size_acres": 0.0,
+    "year_built": 1968,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "567300.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "516200.00"
+    },
+    "last_sold_date": {
+      "$date": "2022-10-22T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "469300.00"
+      },
+      "interest_rate": 7.372,
+      "term_years": 30
+    },
+    "current_owner": "Mei Ahmadi",
+    "tax_assessed_value": {
+      "$numberDecimal": "500700.00"
+    },
+    "created_at": {
+      "$date": "2026-08-27T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-30T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000016"
+    },
+    "property_id": "PROP-00022",
+    "address": {
+      "street": "8588 Sycamore Ter",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.0,
+    "square_feet": 1349,
+    "lot_size_acres": 0.0,
+    "year_built": 1975,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "712100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "634300.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-10-05T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "706900.00"
+      },
+      "interest_rate": 7.427,
+      "term_years": 20
+    },
+    "current_owner": "Felix Delacroix",
+    "tax_assessed_value": {
+      "$numberDecimal": "593400.00"
+    },
+    "created_at": {
+      "$date": "2025-08-24T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-12-08T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000017"
+    },
+    "property_id": "PROP-00023",
+    "address": {
+      "street": "8942 Sycamore Ct",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 2.0,
+    "square_feet": 2596,
+    "lot_size_acres": 0.093,
+    "year_built": 1986,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1441800.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1311900.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-10-28T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "1130600.00"
+      },
+      "interest_rate": 7.247,
+      "term_years": 20
+    },
+    "current_owner": "Victor Bergstrom",
+    "tax_assessed_value": {
+      "$numberDecimal": "1243300.00"
+    },
+    "created_at": {
+      "$date": "2025-09-01T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-09T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000018"
+    },
+    "property_id": "PROP-00024",
+    "address": {
+      "street": "3393 Hickory Rd",
+      "city": "Herndon",
+      "state": "VA",
+      "zip": "20170"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 3.0,
+    "square_feet": 2677,
+    "lot_size_acres": 0.751,
+    "year_built": 2025,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1007700.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "832900.00"
+      },
+      "interest_rate": 7.404,
+      "term_years": 30
+    },
+    "current_owner": "Victor Whitfield",
+    "tax_assessed_value": {
+      "$numberDecimal": "1029800.00"
+    },
+    "created_at": {
+      "$date": "2026-01-24T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-01-24T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000019"
+    },
+    "property_id": "PROP-00025",
+    "address": {
+      "street": "3745 Birchwood Ave",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 1.0,
+    "square_feet": 914,
+    "lot_size_acres": 0.0,
+    "year_built": 1965,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "345700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "256500.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-05-14T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "271600.00"
+      },
+      "interest_rate": 6.487,
+      "term_years": 20
+    },
+    "current_owner": "Mei Novak",
+    "tax_assessed_value": {
+      "$numberDecimal": "270900.00"
+    },
+    "created_at": {
+      "$date": "2025-07-30T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-09-07T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000001a"
+    },
+    "property_id": "PROP-00026",
+    "address": {
+      "street": "2482 Maple Way",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 2.0,
+    "square_feet": 1355,
+    "lot_size_acres": 0.088,
+    "year_built": 1995,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "823400.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "739600.00"
+    },
+    "last_sold_date": {
+      "$date": "2021-03-28T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "790500.00"
+      },
+      "interest_rate": 7.152,
+      "term_years": 30
+    },
+    "current_owner": "Amara Ahmadi",
+    "tax_assessed_value": {
+      "$numberDecimal": "686000.00"
+    },
+    "created_at": {
+      "$date": "2026-05-26T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-06-23T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000001b"
+    },
+    "property_id": "PROP-00027",
+    "address": {
+      "street": "2834 Magnolia Ln",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "multi_family",
+    "bedrooms": 6,
+    "bathrooms": 4.0,
+    "square_feet": 4141,
+    "lot_size_acres": 0.445,
+    "year_built": 1954,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "1639700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1550100.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-10-29T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "1570700.00"
+      },
+      "interest_rate": 5.902,
+      "term_years": 15
+    },
+    "current_owner": "Marcus Okonkwo",
+    "tax_assessed_value": {
+      "$numberDecimal": "1589800.00"
+    },
+    "created_at": {
+      "$date": "2026-02-21T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-06-11T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000001c"
+    },
+    "property_id": "PROP-00028",
+    "address": {
+      "street": "1449 Willow Creek Ave",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20001"
+    },
+    "property_type": "single_family",
+    "bedrooms": 3,
+    "bathrooms": 2.0,
+    "square_feet": 4706,
+    "lot_size_acres": 0.772,
+    "year_built": 1965,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "2496700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "2088500.00"
+    },
+    "last_sold_date": {
+      "$date": "2026-04-20T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "2228800.00"
+      },
+      "interest_rate": 5.822,
+      "term_years": 30
+    },
+    "current_owner": "Felix Moreau",
+    "tax_assessed_value": {
+      "$numberDecimal": "2290500.00"
+    },
+    "created_at": {
+      "$date": "2026-06-29T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-20T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000001d"
+    },
+    "property_id": "PROP-00029",
+    "address": {
+      "street": "8745 Hawthorn Ave",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 1.5,
+    "square_feet": 1627,
+    "lot_size_acres": 0.0,
+    "year_built": 1968,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "815000.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "545800.00"
+    },
+    "last_sold_date": {
+      "$date": "2021-10-06T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "582000.00"
+      },
+      "interest_rate": 6.784,
+      "term_years": 30
+    },
+    "current_owner": "Nora Delacroix",
+    "tax_assessed_value": {
+      "$numberDecimal": "668700.00"
+    },
+    "created_at": {
+      "$date": "2026-04-17T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-06T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000001e"
+    },
+    "property_id": "PROP-00030",
+    "address": {
+      "street": "9362 Sunset Ter",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 1.0,
+    "square_feet": 1408,
+    "lot_size_acres": 0.043,
+    "year_built": 1967,
+    "listing_status": "off_market",
+    "listing_price": {
+      "$numberDecimal": "856300.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "633800.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-10-08T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "833300.00"
+      },
+      "interest_rate": 7.334,
+      "term_years": 30
+    },
+    "current_owner": "Ibrahim Nakamura",
+    "tax_assessed_value": {
+      "$numberDecimal": "809800.00"
+    },
+    "created_at": {
+      "$date": "2025-08-16T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-01-07T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000001f"
+    },
+    "property_id": "PROP-00031",
+    "address": {
+      "street": "3566 Willow Creek Rd",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 2.5,
+    "square_feet": 2209,
+    "lot_size_acres": 0.051,
+    "year_built": 1986,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "1177900.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "857700.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-02-05T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "935400.00"
+      },
+      "interest_rate": 6.141,
+      "term_years": 30
+    },
+    "current_owner": "Sofia Kowalski",
+    "tax_assessed_value": {
+      "$numberDecimal": "1091900.00"
+    },
+    "created_at": {
+      "$date": "2026-02-12T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-02-23T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000020"
+    },
+    "property_id": "PROP-00032",
+    "address": {
+      "street": "4048 Alder Dr",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 1.0,
+    "square_feet": 720,
+    "lot_size_acres": 0.0,
+    "year_built": 2002,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "434100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "406200.00"
+    },
+    "last_sold_date": {
+      "$date": "2016-12-13T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "422600.00"
+      },
+      "interest_rate": 5.239,
+      "term_years": 30
+    },
+    "current_owner": "Ibrahim Castellano",
+    "tax_assessed_value": {
+      "$numberDecimal": "390200.00"
+    },
+    "created_at": {
+      "$date": "2026-02-27T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-24T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000021"
+    },
+    "property_id": "PROP-00033",
+    "address": {
+      "street": "8402 Alder Pl",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 1.5,
+    "square_feet": 1974,
+    "lot_size_acres": 0.046,
+    "year_built": 2004,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1144300.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "1096900.00"
+      },
+      "interest_rate": 6.513,
+      "term_years": 30
+    },
+    "current_owner": "Leah Kowalski",
+    "tax_assessed_value": {
+      "$numberDecimal": "1159900.00"
+    },
+    "created_at": {
+      "$date": "2025-10-21T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-07T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000022"
+    },
+    "property_id": "PROP-00034",
+    "address": {
+      "street": "4093 Poplar Ter",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 1.0,
+    "square_feet": 2079,
+    "lot_size_acres": 0.033,
+    "year_built": 1974,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1228800.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "964800.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-06-07T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1045600.00"
+      },
+      "interest_rate": 7.194,
+      "term_years": 30
+    },
+    "current_owner": "Thomas Novak",
+    "tax_assessed_value": {
+      "$numberDecimal": "1110200.00"
+    },
+    "created_at": {
+      "$date": "2025-10-05T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-16T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000023"
+    },
+    "property_id": "PROP-00035",
+    "address": {
+      "street": "959 Hawthorn Pl",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20016"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 4.5,
+    "square_feet": 1604,
+    "lot_size_acres": 0.204,
+    "year_built": 2019,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "594800.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "559000.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-10-21T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "461800.00"
+      },
+      "interest_rate": 5.737,
+      "term_years": 30
+    },
+    "current_owner": "Alice Hartley",
+    "tax_assessed_value": {
+      "$numberDecimal": "509100.00"
+    },
+    "created_at": {
+      "$date": "2026-01-08T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-02-13T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000024"
+    },
+    "property_id": "PROP-00036",
+    "address": {
+      "street": "3348 Hickory Ave",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20001"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 2.5,
+    "square_feet": 3010,
+    "lot_size_acres": 0.141,
+    "year_built": 1979,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "901200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "647200.00"
+    },
+    "last_sold_date": {
+      "$date": "2025-09-09T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "670800.00"
+      },
+      "interest_rate": 7.52,
+      "term_years": 30
+    },
+    "current_owner": "Amara Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "924900.00"
+    },
+    "created_at": {
+      "$date": "2025-11-22T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-17T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000025"
+    },
+    "property_id": "PROP-00037",
+    "address": {
+      "street": "4702 Willow Creek Dr",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.5,
+    "square_feet": 1181,
+    "lot_size_acres": 0.0,
+    "year_built": 2003,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "466400.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "309700.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-03-31T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "355000.00"
+      },
+      "interest_rate": 5.261,
+      "term_years": 15
+    },
+    "current_owner": "Andre Whitfield",
+    "tax_assessed_value": {
+      "$numberDecimal": "363900.00"
+    },
+    "created_at": {
+      "$date": "2026-07-14T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-30T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000026"
+    },
+    "property_id": "PROP-00038",
+    "address": {
+      "street": "7177 Chestnut Ave",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 3.0,
+    "square_feet": 1853,
+    "lot_size_acres": 0.036,
+    "year_built": 2008,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "553000.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "429200.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-08-24T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "528200.00"
+      },
+      "interest_rate": 6.612,
+      "term_years": 30
+    },
+    "current_owner": "Priya Ahmadi",
+    "tax_assessed_value": {
+      "$numberDecimal": "513400.00"
+    },
+    "created_at": {
+      "$date": "2025-10-31T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-04-03T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000027"
+    },
+    "property_id": "PROP-00039",
+    "address": {
+      "street": "2595 Hickory Ln",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "single_family",
+    "bedrooms": 3,
+    "bathrooms": 2.5,
+    "square_feet": 3669,
+    "lot_size_acres": 0.925,
+    "year_built": 1990,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "1609600.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1359500.00"
+    },
+    "last_sold_date": {
+      "$date": "2017-11-13T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1215300.00"
+      },
+      "interest_rate": 5.218,
+      "term_years": 20
+    },
+    "current_owner": "Marcus Delacroix",
+    "tax_assessed_value": {
+      "$numberDecimal": "1325200.00"
+    },
+    "created_at": {
+      "$date": "2026-02-13T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-09-01T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000028"
+    },
+    "property_id": "PROP-00040",
+    "address": {
+      "street": "3254 Hawthorn Ct",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20016"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 1.5,
+    "square_feet": 844,
+    "lot_size_acres": 0.0,
+    "year_built": 2017,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "495700.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "484600.00"
+      },
+      "interest_rate": 5.005,
+      "term_years": 30
+    },
+    "current_owner": "Mei Petrov",
+    "tax_assessed_value": {
+      "$numberDecimal": "420700.00"
+    },
+    "created_at": {
+      "$date": "2026-08-01T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-08T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000029"
+    },
+    "property_id": "PROP-00041",
+    "address": {
+      "street": "1162 Magnolia Dr",
+      "city": "Arlington",
+      "state": "VA",
+      "zip": "22201"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 2.5,
+    "square_feet": 1787,
+    "lot_size_acres": 0.038,
+    "year_built": 1958,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "919000.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "721500.00"
+    },
+    "last_sold_date": {
+      "$date": "2017-11-13T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "766600.00"
+      },
+      "interest_rate": 6.903,
+      "term_years": 30
+    },
+    "current_owner": "Felix Ferreira",
+    "tax_assessed_value": {
+      "$numberDecimal": "794100.00"
+    },
+    "created_at": {
+      "$date": "2026-02-26T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-24T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000002a"
+    },
+    "property_id": "PROP-00042",
+    "address": {
+      "street": "2122 Dogwood Ave",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20001"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 4,
+    "bathrooms": 4.5,
+    "square_feet": 1387,
+    "lot_size_acres": 0.094,
+    "year_built": 1949,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "410100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "320100.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-10-01T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "327500.00"
+      },
+      "interest_rate": 5.889,
+      "term_years": 30
+    },
+    "current_owner": "Leah Santos",
+    "tax_assessed_value": {
+      "$numberDecimal": "423800.00"
+    },
+    "created_at": {
+      "$date": "2026-05-17T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-13T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000002b"
+    },
+    "property_id": "PROP-00043",
+    "address": {
+      "street": "2203 Birchwood Ter",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 1.5,
+    "square_feet": 1762,
+    "lot_size_acres": 0.984,
+    "year_built": 2019,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "582700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "545600.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-09-12T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "447100.00"
+      },
+      "interest_rate": 5.006,
+      "term_years": 30
+    },
+    "current_owner": "Amara Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "529200.00"
+    },
+    "created_at": {
+      "$date": "2025-08-29T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-12-13T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000002c"
+    },
+    "property_id": "PROP-00044",
+    "address": {
+      "street": "6537 Maple Pl",
+      "city": "Herndon",
+      "state": "VA",
+      "zip": "20170"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 1.0,
+    "square_feet": 1702,
+    "lot_size_acres": 0.033,
+    "year_built": 1969,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "745800.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "620200.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-08-21T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "606000.00"
+      },
+      "interest_rate": 6.919,
+      "term_years": 15
+    },
+    "current_owner": "Jonas Hartley",
+    "tax_assessed_value": {
+      "$numberDecimal": "714500.00"
+    },
+    "created_at": {
+      "$date": "2026-01-01T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-04-06T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000002d"
+    },
+    "property_id": "PROP-00045",
+    "address": {
+      "street": "3271 Laurel Rd",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 1.5,
+    "square_feet": 4269,
+    "lot_size_acres": 0.345,
+    "year_built": 1996,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "2446500.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "2061200.00"
+      },
+      "interest_rate": 7.677,
+      "term_years": 20
+    },
+    "current_owner": "Marcus Ahmadi",
+    "tax_assessed_value": {
+      "$numberDecimal": "2507200.00"
+    },
+    "created_at": {
+      "$date": "2026-08-19T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-25T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000002e"
+    },
+    "property_id": "PROP-00046",
+    "address": {
+      "street": "925 Juniper Pl",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 4.5,
+    "square_feet": 4765,
+    "lot_size_acres": 0.559,
+    "year_built": 1980,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "2607200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "2230300.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-12-03T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "2043100.00"
+      },
+      "interest_rate": 7.447,
+      "term_years": 30
+    },
+    "current_owner": "Mei Okonkwo",
+    "tax_assessed_value": {
+      "$numberDecimal": "2596500.00"
+    },
+    "created_at": {
+      "$date": "2025-11-16T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-07T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000002f"
+    },
+    "property_id": "PROP-00047",
+    "address": {
+      "street": "7344 Magnolia Pl",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.5,
+    "square_feet": 653,
+    "lot_size_acres": 0.0,
+    "year_built": 1993,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "373100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "348200.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-06-27T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "355300.00"
+      },
+      "interest_rate": 5.396,
+      "term_years": 30
+    },
+    "current_owner": "Amara Delacroix",
+    "tax_assessed_value": {
+      "$numberDecimal": "327600.00"
+    },
+    "created_at": {
+      "$date": "2025-11-11T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-11-25T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000030"
+    },
+    "property_id": "PROP-00048",
+    "address": {
+      "street": "4000 Magnolia Ave",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 2.5,
+    "square_feet": 2078,
+    "lot_size_acres": 0.108,
+    "year_built": 1989,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "640000.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "479400.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-06-09T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "535300.00"
+      },
+      "interest_rate": 6.587,
+      "term_years": 30
+    },
+    "current_owner": "Sofia Kowalski",
+    "tax_assessed_value": {
+      "$numberDecimal": "543500.00"
+    },
+    "created_at": {
+      "$date": "2026-08-13T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-16T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000031"
+    },
+    "property_id": "PROP-00049",
+    "address": {
+      "street": "1643 Sycamore Rd",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 2.0,
+    "square_feet": 1535,
+    "lot_size_acres": 0.0,
+    "year_built": 2006,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "476700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "426000.00"
+    },
+    "last_sold_date": {
+      "$date": "2025-07-24T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "364300.00"
+      },
+      "interest_rate": 7.61,
+      "term_years": 20
+    },
+    "current_owner": "Sofia Ramirez",
+    "tax_assessed_value": {
+      "$numberDecimal": "452700.00"
+    },
+    "created_at": {
+      "$date": "2025-08-11T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-02-09T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000032"
+    },
+    "property_id": "PROP-00050",
+    "address": {
+      "street": "1639 Willow Creek Ln",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 1.5,
+    "square_feet": 2041,
+    "lot_size_acres": 0.573,
+    "year_built": 1976,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "1242800.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "992700.00"
+    },
+    "last_sold_date": {
+      "$date": "2016-12-13T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "995700.00"
+      },
+      "interest_rate": 6.803,
+      "term_years": 30
+    },
+    "current_owner": "Mei Hartley",
+    "tax_assessed_value": {
+      "$numberDecimal": "1257300.00"
+    },
+    "created_at": {
+      "$date": "2026-02-12T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-24T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000033"
+    },
+    "property_id": "PROP-00051",
+    "address": {
+      "street": "5125 Birchwood Rd",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 1.5,
+    "square_feet": 1226,
+    "lot_size_acres": 0.077,
+    "year_built": 1965,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "421600.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "400000.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-11-04T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "361700.00"
+      },
+      "interest_rate": 6.967,
+      "term_years": 15
+    },
+    "current_owner": "Rosa Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "413100.00"
+    },
+    "created_at": {
+      "$date": "2026-02-02T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-22T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000034"
+    },
+    "property_id": "PROP-00052",
+    "address": {
+      "street": "521 Birchwood Ter",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 4.0,
+    "square_feet": 4760,
+    "lot_size_acres": 0.303,
+    "year_built": 1983,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "2936900.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "2515300.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-03-25T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "2799800.00"
+      },
+      "interest_rate": 6.639,
+      "term_years": 30
+    },
+    "current_owner": "Thomas Moreau",
+    "tax_assessed_value": {
+      "$numberDecimal": "2338300.00"
+    },
+    "created_at": {
+      "$date": "2026-01-27T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-06-07T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000035"
+    },
+    "property_id": "PROP-00053",
+    "address": {
+      "street": "8821 Chestnut Rd",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 2.5,
+    "square_feet": 4531,
+    "lot_size_acres": 0.328,
+    "year_built": 1972,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "2351800.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1738200.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-01-01T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "2156000.00"
+      },
+      "interest_rate": 7.443,
+      "term_years": 30
+    },
+    "current_owner": "Felix Bergstrom",
+    "tax_assessed_value": {
+      "$numberDecimal": "2269600.00"
+    },
+    "created_at": {
+      "$date": "2026-04-19T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-17T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000036"
+    },
+    "property_id": "PROP-00054",
+    "address": {
+      "street": "6979 Sycamore Pl",
+      "city": "Silver Spring",
+      "state": "MD",
+      "zip": "20910"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 2.0,
+    "square_feet": 3233,
+    "lot_size_acres": 0.451,
+    "year_built": 1977,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "1625500.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1088400.00"
+    },
+    "last_sold_date": {
+      "$date": "2017-02-04T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1293000.00"
+      },
+      "interest_rate": 6.048,
+      "term_years": 30
+    },
+    "current_owner": "Rosa Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "1522800.00"
+    },
+    "created_at": {
+      "$date": "2025-12-29T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-01-04T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000037"
+    },
+    "property_id": "PROP-00055",
+    "address": {
+      "street": "797 Alder Ave",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20001"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 3.5,
+    "square_feet": 3982,
+    "lot_size_acres": 0.369,
+    "year_built": 1969,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1327700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1086000.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-09-15T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "1281400.00"
+      },
+      "interest_rate": 6.48,
+      "term_years": 30
+    },
+    "current_owner": "Victor Petrov",
+    "tax_assessed_value": {
+      "$numberDecimal": "1187800.00"
+    },
+    "created_at": {
+      "$date": "2026-02-18T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-04-22T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000038"
+    },
+    "property_id": "PROP-00056",
+    "address": {
+      "street": "7244 Oak Hill Ct",
+      "city": "Silver Spring",
+      "state": "MD",
+      "zip": "20910"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 2.0,
+    "square_feet": 2091,
+    "lot_size_acres": 0.082,
+    "year_built": 1988,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1082200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "972300.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-07-01T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "802600.00"
+      },
+      "interest_rate": 4.946,
+      "term_years": 15
+    },
+    "current_owner": "Thomas Bergstrom",
+    "tax_assessed_value": {
+      "$numberDecimal": "1003700.00"
+    },
+    "created_at": {
+      "$date": "2026-08-15T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-15T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000039"
+    },
+    "property_id": "PROP-00057",
+    "address": {
+      "street": "6037 Hickory Ct",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 4.0,
+    "square_feet": 3308,
+    "lot_size_acres": 0.126,
+    "year_built": 2012,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1932700.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1521400.00"
+      },
+      "interest_rate": 4.814,
+      "term_years": 30
+    },
+    "current_owner": "Rosa Santos",
+    "tax_assessed_value": {
+      "$numberDecimal": "1669300.00"
+    },
+    "created_at": {
+      "$date": "2026-05-03T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-09T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000003a"
+    },
+    "property_id": "PROP-00058",
+    "address": {
+      "street": "1552 Sycamore Ct",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 1.5,
+    "square_feet": 981,
+    "lot_size_acres": 0.0,
+    "year_built": 1961,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "424700.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "382600.00"
+      },
+      "interest_rate": 5.031,
+      "term_years": 30
+    },
+    "current_owner": "Victor Petrov",
+    "tax_assessed_value": {
+      "$numberDecimal": "347000.00"
+    },
+    "created_at": {
+      "$date": "2025-10-05T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-17T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000003b"
+    },
+    "property_id": "PROP-00059",
+    "address": {
+      "street": "6945 Chestnut Ct",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20016"
+    },
+    "property_type": "multi_family",
+    "bedrooms": 5,
+    "bathrooms": 3.5,
+    "square_feet": 2681,
+    "lot_size_acres": 0.15,
+    "year_built": 1992,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "794800.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "656800.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-01-05T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "785400.00"
+      },
+      "interest_rate": 6.198,
+      "term_years": 20
+    },
+    "current_owner": "Marcus Kowalski",
+    "tax_assessed_value": {
+      "$numberDecimal": "660500.00"
+    },
+    "created_at": {
+      "$date": "2026-08-18T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-26T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000003c"
+    },
+    "property_id": "PROP-00060",
+    "address": {
+      "street": "5791 Dogwood Ln",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 4.5,
+    "square_feet": 4608,
+    "lot_size_acres": 0.303,
+    "year_built": 1969,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1866000.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1612000.00"
+      },
+      "interest_rate": 7.571,
+      "term_years": 20
+    },
+    "current_owner": "Daniel Nakamura",
+    "tax_assessed_value": {
+      "$numberDecimal": "1645200.00"
+    },
+    "created_at": {
+      "$date": "2025-12-05T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-14T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000003d"
+    },
+    "property_id": "PROP-00061",
+    "address": {
+      "street": "3211 Chestnut Rd",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20001"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.0,
+    "square_feet": 749,
+    "lot_size_acres": 0.0,
+    "year_built": 1966,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "439200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "359900.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-11-30T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "384700.00"
+      },
+      "interest_rate": 6.862,
+      "term_years": 15
+    },
+    "current_owner": "Rosa Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "435900.00"
+    },
+    "created_at": {
+      "$date": "2026-08-08T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-21T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000003e"
+    },
+    "property_id": "PROP-00062",
+    "address": {
+      "street": "8696 Sycamore Ter",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20016"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 2.5,
+    "square_feet": 1682,
+    "lot_size_acres": 0.0,
+    "year_built": 2023,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "875400.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "780100.00"
+    },
+    "last_sold_date": {
+      "$date": "2026-01-25T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "675300.00"
+      },
+      "interest_rate": 5.154,
+      "term_years": 30
+    },
+    "current_owner": "Nora Ramirez",
+    "tax_assessed_value": {
+      "$numberDecimal": "879900.00"
+    },
+    "created_at": {
+      "$date": "2026-07-24T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-18T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000003f"
+    },
+    "property_id": "PROP-00063",
+    "address": {
+      "street": "6990 Juniper Ln",
+      "city": "Rockville",
+      "state": "MD",
+      "zip": "20850"
+    },
+    "property_type": "single_family",
+    "bedrooms": 3,
+    "bathrooms": 3.0,
+    "square_feet": 2438,
+    "lot_size_acres": 0.859,
+    "year_built": 1987,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "812500.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "521400.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-04-19T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "713500.00"
+      },
+      "interest_rate": 7.628,
+      "term_years": 30
+    },
+    "current_owner": "Thomas Ahmadi",
+    "tax_assessed_value": {
+      "$numberDecimal": "690800.00"
+    },
+    "created_at": {
+      "$date": "2026-02-15T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-31T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000040"
+    },
+    "property_id": "PROP-00064",
+    "address": {
+      "street": "4074 Alder Pl",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 1.5,
+    "square_feet": 1717,
+    "lot_size_acres": 0.0,
+    "year_built": 1997,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "967900.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "930500.00"
+    },
+    "last_sold_date": {
+      "$date": "2025-06-02T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "695100.00"
+      },
+      "interest_rate": 6.414,
+      "term_years": 20
+    },
+    "current_owner": "Leah Moreau",
+    "tax_assessed_value": {
+      "$numberDecimal": "898800.00"
+    },
+    "created_at": {
+      "$date": "2026-05-23T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-18T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000041"
+    },
+    "property_id": "PROP-00065",
+    "address": {
+      "street": "554 Maple Ln",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 2.0,
+    "square_feet": 3081,
+    "lot_size_acres": 0.364,
+    "year_built": 2015,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "1295900.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1027300.00"
+      },
+      "interest_rate": 5.052,
+      "term_years": 30
+    },
+    "current_owner": "Leah Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "1326300.00"
+    },
+    "created_at": {
+      "$date": "2026-01-31T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-06-01T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000042"
+    },
+    "property_id": "PROP-00066",
+    "address": {
+      "street": "3132 Oak Hill Dr",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 2.0,
+    "square_feet": 969,
+    "lot_size_acres": 0.0,
+    "year_built": 1975,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "555200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "518300.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-08-09T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "484200.00"
+      },
+      "interest_rate": 7.45,
+      "term_years": 15
+    },
+    "current_owner": "Sofia Ferreira",
+    "tax_assessed_value": {
+      "$numberDecimal": "566300.00"
+    },
+    "created_at": {
+      "$date": "2025-11-19T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-18T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000043"
+    },
+    "property_id": "PROP-00067",
+    "address": {
+      "street": "3140 Oak Hill Pl",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 1.0,
+    "square_feet": 897,
+    "lot_size_acres": 0.0,
+    "year_built": 2012,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "483200.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "402000.00"
+      },
+      "interest_rate": 5.72,
+      "term_years": 30
+    },
+    "current_owner": "Jonas Hartley",
+    "tax_assessed_value": {
+      "$numberDecimal": "409700.00"
+    },
+    "created_at": {
+      "$date": "2025-09-12T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-10-24T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000044"
+    },
+    "property_id": "PROP-00068",
+    "address": {
+      "street": "4644 Juniper Rd",
+      "city": "Arlington",
+      "state": "VA",
+      "zip": "22201"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 3.0,
+    "square_feet": 1184,
+    "lot_size_acres": 0.0,
+    "year_built": 1973,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "405400.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "390600.00"
+    },
+    "last_sold_date": {
+      "$date": "2026-03-10T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "329400.00"
+      },
+      "interest_rate": 6.766,
+      "term_years": 15
+    },
+    "current_owner": "Sofia Ramirez",
+    "tax_assessed_value": {
+      "$numberDecimal": "376500.00"
+    },
+    "created_at": {
+      "$date": "2025-12-17T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-05T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000045"
+    },
+    "property_id": "PROP-00069",
+    "address": {
+      "street": "4487 Sunset Ter",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 2.5,
+    "square_feet": 2055,
+    "lot_size_acres": 1.093,
+    "year_built": 2018,
+    "listing_status": "off_market",
+    "listing_price": {
+      "$numberDecimal": "1015700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "780200.00"
+    },
+    "last_sold_date": {
+      "$date": "2025-03-12T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "952900.00"
+      },
+      "interest_rate": 5.798,
+      "term_years": 20
+    },
+    "current_owner": "Nora Moreau",
+    "tax_assessed_value": {
+      "$numberDecimal": "879100.00"
+    },
+    "created_at": {
+      "$date": "2025-10-06T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-12-16T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000046"
+    },
+    "property_id": "PROP-00070",
+    "address": {
+      "street": "6633 Chestnut Rd",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 2.0,
+    "square_feet": 2293,
+    "lot_size_acres": 0.918,
+    "year_built": 2008,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "1276600.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "879500.00"
+    },
+    "last_sold_date": {
+      "$date": "2026-05-20T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "1188500.00"
+      },
+      "interest_rate": 5.815,
+      "term_years": 30
+    },
+    "current_owner": "Victor Bergstrom",
+    "tax_assessed_value": {
+      "$numberDecimal": "1092700.00"
+    },
+    "created_at": {
+      "$date": "2025-08-21T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-04-20T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000047"
+    },
+    "property_id": "PROP-00071",
+    "address": {
+      "street": "4708 Cedar Ridge Ter",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 2.0,
+    "square_feet": 1450,
+    "lot_size_acres": 0.106,
+    "year_built": 2016,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "419200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "287100.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-04-26T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "371300.00"
+      },
+      "interest_rate": 5.779,
+      "term_years": 30
+    },
+    "current_owner": "Amara Hartley",
+    "tax_assessed_value": {
+      "$numberDecimal": "430400.00"
+    },
+    "created_at": {
+      "$date": "2026-05-11T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-06-14T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000048"
+    },
+    "property_id": "PROP-00072",
+    "address": {
+      "street": "3743 Sunset Ct",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 2.0,
+    "square_feet": 860,
+    "lot_size_acres": 0.0,
+    "year_built": 1992,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "523300.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "422600.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-09-30T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "501300.00"
+      },
+      "interest_rate": 6.035,
+      "term_years": 30
+    },
+    "current_owner": "Priya Ferreira",
+    "tax_assessed_value": {
+      "$numberDecimal": "518500.00"
+    },
+    "created_at": {
+      "$date": "2026-08-16T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-16T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000049"
+    },
+    "property_id": "PROP-00073",
+    "address": {
+      "street": "1371 Poplar Dr",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 1.0,
+    "square_feet": 3681,
+    "lot_size_acres": 1.025,
+    "year_built": 2013,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1033100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "974300.00"
+    },
+    "last_sold_date": {
+      "$date": "2017-11-08T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "808400.00"
+      },
+      "interest_rate": 6.877,
+      "term_years": 20
+    },
+    "current_owner": "Jonas Ramirez",
+    "tax_assessed_value": {
+      "$numberDecimal": "1038200.00"
+    },
+    "created_at": {
+      "$date": "2025-11-08T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-11T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000004a"
+    },
+    "property_id": "PROP-00074",
+    "address": {
+      "street": "9702 Hickory Pl",
+      "city": "Silver Spring",
+      "state": "MD",
+      "zip": "20910"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.0,
+    "square_feet": 1740,
+    "lot_size_acres": 0.0,
+    "year_built": 2017,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "959500.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "753300.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-12-25T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "860900.00"
+      },
+      "interest_rate": 5.023,
+      "term_years": 30
+    },
+    "current_owner": "Marcus Okonkwo",
+    "tax_assessed_value": {
+      "$numberDecimal": "748600.00"
+    },
+    "created_at": {
+      "$date": "2025-08-30T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-01-08T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000004b"
+    },
+    "property_id": "PROP-00075",
+    "address": {
+      "street": "2957 Cedar Ridge Ter",
+      "city": "Fairfax",
+      "state": "VA",
+      "zip": "22030"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.0,
+    "square_feet": 1502,
+    "lot_size_acres": 0.0,
+    "year_built": 2017,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "878600.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "717300.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-08-24T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "777200.00"
+      },
+      "interest_rate": 7.2,
+      "term_years": 30
+    },
+    "current_owner": "Nora Petrov",
+    "tax_assessed_value": {
+      "$numberDecimal": "808200.00"
+    },
+    "created_at": {
+      "$date": "2025-10-25T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-04T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000004c"
+    },
+    "property_id": "PROP-00076",
+    "address": {
+      "street": "5849 Cedar Ridge Ave",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 4,
+    "bathrooms": 3.5,
+    "square_feet": 1898,
+    "lot_size_acres": 0.063,
+    "year_built": 2012,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "852200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "708900.00"
+    },
+    "last_sold_date": {
+      "$date": "2017-11-11T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "748500.00"
+      },
+      "interest_rate": 7.518,
+      "term_years": 30
+    },
+    "current_owner": "Andre Ramirez",
+    "tax_assessed_value": {
+      "$numberDecimal": "851200.00"
+    },
+    "created_at": {
+      "$date": "2026-05-14T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-31T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000004d"
+    },
+    "property_id": "PROP-00077",
+    "address": {
+      "street": "4077 Dogwood Ter",
+      "city": "Silver Spring",
+      "state": "MD",
+      "zip": "20910"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 1.5,
+    "square_feet": 2592,
+    "lot_size_acres": 0.288,
+    "year_built": 1993,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "738500.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "562300.00"
+    },
+    "last_sold_date": {
+      "$date": "2017-12-05T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "576300.00"
+      },
+      "interest_rate": 5.056,
+      "term_years": 30
+    },
+    "current_owner": "Jonas Okonkwo",
+    "tax_assessed_value": {
+      "$numberDecimal": "697900.00"
+    },
+    "created_at": {
+      "$date": "2025-09-29T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-27T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000004e"
+    },
+    "property_id": "PROP-00078",
+    "address": {
+      "street": "3010 Magnolia Ct",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 4.0,
+    "square_feet": 1994,
+    "lot_size_acres": 1.059,
+    "year_built": 1988,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "566100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "471100.00"
+    },
+    "last_sold_date": {
+      "$date": "2018-02-01T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "457400.00"
+      },
+      "interest_rate": 7.481,
+      "term_years": 20
+    },
+    "current_owner": "Rosa Moreau",
+    "tax_assessed_value": {
+      "$numberDecimal": "537300.00"
+    },
+    "created_at": {
+      "$date": "2025-08-15T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-13T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000004f"
+    },
+    "property_id": "PROP-00079",
+    "address": {
+      "street": "3580 Sunset Rd",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "single_family",
+    "bedrooms": 3,
+    "bathrooms": 2.5,
+    "square_feet": 2066,
+    "lot_size_acres": 0.7,
+    "year_built": 2024,
+    "listing_status": "off_market",
+    "listing_price": {
+      "$numberDecimal": "1219100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1134500.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-07-31T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "VA",
+      "loan_amount": {
+        "$numberDecimal": "1164500.00"
+      },
+      "interest_rate": 4.812,
+      "term_years": 20
+    },
+    "current_owner": "Andre Bergstrom",
+    "tax_assessed_value": {
+      "$numberDecimal": "1168500.00"
+    },
+    "created_at": {
+      "$date": "2025-08-03T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-06-14T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000050"
+    },
+    "property_id": "PROP-00080",
+    "address": {
+      "street": "6536 Willow Creek Way",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 4.0,
+    "square_feet": 4404,
+    "lot_size_acres": 0.516,
+    "year_built": 1998,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1648200.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1346300.00"
+      },
+      "interest_rate": 6.022,
+      "term_years": 20
+    },
+    "current_owner": "Felix Whitfield",
+    "tax_assessed_value": {
+      "$numberDecimal": "1424700.00"
+    },
+    "created_at": {
+      "$date": "2026-05-16T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-06-10T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000051"
+    },
+    "property_id": "PROP-00081",
+    "address": {
+      "street": "3610 Willow Creek Way",
+      "city": "Rockville",
+      "state": "MD",
+      "zip": "20850"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 2.5,
+    "square_feet": 1891,
+    "lot_size_acres": 0.039,
+    "year_built": 1972,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "679900.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "471200.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-04-23T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "635300.00"
+      },
+      "interest_rate": 5.697,
+      "term_years": 15
+    },
+    "current_owner": "Amara Okonkwo",
+    "tax_assessed_value": {
+      "$numberDecimal": "639700.00"
+    },
+    "created_at": {
+      "$date": "2026-06-07T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-06T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000052"
+    },
+    "property_id": "PROP-00082",
+    "address": {
+      "street": "4176 Birchwood Rd",
+      "city": "Arlington",
+      "state": "VA",
+      "zip": "22201"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 1.0,
+    "square_feet": 1602,
+    "lot_size_acres": 0.048,
+    "year_built": 1965,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "801200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "737600.00"
+    },
+    "last_sold_date": {
+      "$date": "2023-05-01T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "690500.00"
+      },
+      "interest_rate": 5.813,
+      "term_years": 20
+    },
+    "current_owner": "Amara Kowalski",
+    "tax_assessed_value": {
+      "$numberDecimal": "674600.00"
+    },
+    "created_at": {
+      "$date": "2025-11-03T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-11-12T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000053"
+    },
+    "property_id": "PROP-00083",
+    "address": {
+      "street": "8395 Sunset Ct",
+      "city": "Arlington",
+      "state": "VA",
+      "zip": "22201"
+    },
+    "property_type": "single_family",
+    "bedrooms": 6,
+    "bathrooms": 1.5,
+    "square_feet": 1796,
+    "lot_size_acres": 0.734,
+    "year_built": 1991,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "769100.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "511300.00"
+    },
+    "last_sold_date": {
+      "$date": "2017-05-23T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "674800.00"
+      },
+      "interest_rate": 4.83,
+      "term_years": 20
+    },
+    "current_owner": "Jonas Hartley",
+    "tax_assessed_value": {
+      "$numberDecimal": "664000.00"
+    },
+    "created_at": {
+      "$date": "2026-08-16T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-23T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000054"
+    },
+    "property_id": "PROP-00084",
+    "address": {
+      "street": "1381 Poplar Way",
+      "city": "Rockville",
+      "state": "MD",
+      "zip": "20850"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 4,
+    "bathrooms": 3.0,
+    "square_feet": 1841,
+    "lot_size_acres": 0.095,
+    "year_built": 1971,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "868200.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "676100.00"
+      },
+      "interest_rate": 7.246,
+      "term_years": 15
+    },
+    "current_owner": "Thomas Moreau",
+    "tax_assessed_value": {
+      "$numberDecimal": "813100.00"
+    },
+    "created_at": {
+      "$date": "2026-02-04T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-09-01T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000055"
+    },
+    "property_id": "PROP-00085",
+    "address": {
+      "street": "2413 Poplar Ave",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 1.0,
+    "square_feet": 4074,
+    "lot_size_acres": 0.859,
+    "year_built": 2016,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "2067700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1831700.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-03-31T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1849100.00"
+      },
+      "interest_rate": 5.116,
+      "term_years": 30
+    },
+    "current_owner": "Marcus Nakamura",
+    "tax_assessed_value": {
+      "$numberDecimal": "2094600.00"
+    },
+    "created_at": {
+      "$date": "2026-01-11T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-01-20T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000056"
+    },
+    "property_id": "PROP-00086",
+    "address": {
+      "street": "5993 Willow Creek Ln",
+      "city": "Rockville",
+      "state": "MD",
+      "zip": "20850"
+    },
+    "property_type": "condo",
+    "bedrooms": 2,
+    "bathrooms": 1.5,
+    "square_feet": 837,
+    "lot_size_acres": 0.0,
+    "year_built": 1986,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "411600.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "329900.00"
+    },
+    "last_sold_date": {
+      "$date": "2024-10-21T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "391200.00"
+      },
+      "interest_rate": 7.166,
+      "term_years": 15
+    },
+    "current_owner": "Leah Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "374600.00"
+    },
+    "created_at": {
+      "$date": "2025-12-21T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-12-23T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000057"
+    },
+    "property_id": "PROP-00087",
+    "address": {
+      "street": "2796 Chestnut Way",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 3.5,
+    "square_feet": 1470,
+    "lot_size_acres": 0.054,
+    "year_built": 1983,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "578300.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "407200.00"
+      },
+      "interest_rate": 6.316,
+      "term_years": 20
+    },
+    "current_owner": "Mei Whitfield",
+    "tax_assessed_value": {
+      "$numberDecimal": "501300.00"
+    },
+    "created_at": {
+      "$date": "2025-10-20T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-10-27T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000058"
+    },
+    "property_id": "PROP-00088",
+    "address": {
+      "street": "5640 Hawthorn Ave",
+      "city": "Washington",
+      "state": "DC",
+      "zip": "20016"
+    },
+    "property_type": "single_family",
+    "bedrooms": 3,
+    "bathrooms": 2.5,
+    "square_feet": 2212,
+    "lot_size_acres": 0.503,
+    "year_built": 2025,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "1266400.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "865900.00"
+    },
+    "last_sold_date": {
+      "$date": "2021-08-24T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "1182100.00"
+      },
+      "interest_rate": 5.285,
+      "term_years": 20
+    },
+    "current_owner": "Leah Hartley",
+    "tax_assessed_value": {
+      "$numberDecimal": "1040900.00"
+    },
+    "created_at": {
+      "$date": "2025-08-10T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-01-25T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000059"
+    },
+    "property_id": "PROP-00089",
+    "address": {
+      "street": "8127 Laurel Ter",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 2.0,
+    "square_feet": 2566,
+    "lot_size_acres": 0.058,
+    "year_built": 1992,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "1289300.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1028000.00"
+      },
+      "interest_rate": 5.993,
+      "term_years": 20
+    },
+    "current_owner": "Priya Ferreira",
+    "tax_assessed_value": {
+      "$numberDecimal": "1277400.00"
+    },
+    "created_at": {
+      "$date": "2026-04-30T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-05-27T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000005a"
+    },
+    "property_id": "PROP-00090",
+    "address": {
+      "street": "339 Hickory Pl",
+      "city": "Arlington",
+      "state": "VA",
+      "zip": "22201"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 2.0,
+    "square_feet": 1917,
+    "lot_size_acres": 0.031,
+    "year_built": 1974,
+    "listing_status": "off_market",
+    "listing_price": {
+      "$numberDecimal": "987700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "649600.00"
+    },
+    "last_sold_date": {
+      "$date": "2020-10-05T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "939000.00"
+      },
+      "interest_rate": 7.441,
+      "term_years": 15
+    },
+    "current_owner": "Alice Nakamura",
+    "tax_assessed_value": {
+      "$numberDecimal": "1010900.00"
+    },
+    "created_at": {
+      "$date": "2025-12-02T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-31T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000005b"
+    },
+    "property_id": "PROP-00091",
+    "address": {
+      "street": "7691 Willow Creek Ln",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 2.5,
+    "square_feet": 1765,
+    "lot_size_acres": 0.363,
+    "year_built": 2020,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "968300.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "822000.00"
+    },
+    "last_sold_date": {
+      "$date": "2025-10-09T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "889000.00"
+      },
+      "interest_rate": 7.227,
+      "term_years": 30
+    },
+    "current_owner": "Sofia Ahmadi",
+    "tax_assessed_value": {
+      "$numberDecimal": "918600.00"
+    },
+    "created_at": {
+      "$date": "2025-08-12T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2025-12-31T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000005c"
+    },
+    "property_id": "PROP-00092",
+    "address": {
+      "street": "3315 Juniper Rd",
+      "city": "Herndon",
+      "state": "VA",
+      "zip": "20170"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 3,
+    "bathrooms": 3.5,
+    "square_feet": 1545,
+    "lot_size_acres": 0.119,
+    "year_built": 1965,
+    "listing_status": "pending",
+    "listing_price": {
+      "$numberDecimal": "830300.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "586300.00"
+    },
+    "last_sold_date": {
+      "$date": "2022-10-06T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "665700.00"
+      },
+      "interest_rate": 5.78,
+      "term_years": 15
+    },
+    "current_owner": "Leah Ferreira",
+    "tax_assessed_value": {
+      "$numberDecimal": "739200.00"
+    },
+    "created_at": {
+      "$date": "2026-01-16T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-02-21T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000005d"
+    },
+    "property_id": "PROP-00093",
+    "address": {
+      "street": "2588 Poplar Pl",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 4.5,
+    "square_feet": 1666,
+    "lot_size_acres": 0.911,
+    "year_built": 1973,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "589300.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "419600.00"
+    },
+    "last_sold_date": {
+      "$date": "2026-02-09T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "jumbo",
+      "loan_amount": {
+        "$numberDecimal": "445900.00"
+      },
+      "interest_rate": 6.032,
+      "term_years": 30
+    },
+    "current_owner": "Leah Castellano",
+    "tax_assessed_value": {
+      "$numberDecimal": "479400.00"
+    },
+    "created_at": {
+      "$date": "2026-02-22T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-24T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000005e"
+    },
+    "property_id": "PROP-00094",
+    "address": {
+      "street": "842 Poplar Rd",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "single_family",
+    "bedrooms": 5,
+    "bathrooms": 3.5,
+    "square_feet": 3268,
+    "lot_size_acres": 1.089,
+    "year_built": 1954,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "962600.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "798400.00"
+    },
+    "last_sold_date": {
+      "$date": "2025-07-24T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "889200.00"
+      },
+      "interest_rate": 5.15,
+      "term_years": 20
+    },
+    "current_owner": "Jonas Okonkwo",
+    "tax_assessed_value": {
+      "$numberDecimal": "958600.00"
+    },
+    "created_at": {
+      "$date": "2026-01-20T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-31T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "00000000000000000000005f"
+    },
+    "property_id": "PROP-00095",
+    "address": {
+      "street": "7102 Willow Creek Ter",
+      "city": "Alexandria",
+      "state": "VA",
+      "zip": "22314"
+    },
+    "property_type": "condo",
+    "bedrooms": 1,
+    "bathrooms": 1.5,
+    "square_feet": 1567,
+    "lot_size_acres": 0.0,
+    "year_built": 1958,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "850900.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "567900.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-01-22T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "699400.00"
+      },
+      "interest_rate": 7.254,
+      "term_years": 30
+    },
+    "current_owner": "Marcus Novak",
+    "tax_assessed_value": {
+      "$numberDecimal": "874200.00"
+    },
+    "created_at": {
+      "$date": "2025-08-29T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-06T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000060"
+    },
+    "property_id": "PROP-00096",
+    "address": {
+      "street": "5586 Oak Hill Pl",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "condo",
+    "bedrooms": 3,
+    "bathrooms": 3.5,
+    "square_feet": 957,
+    "lot_size_acres": 0.0,
+    "year_built": 2006,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "332000.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "263000.00"
+    },
+    "last_sold_date": {
+      "$date": "2025-07-22T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "316700.00"
+      },
+      "interest_rate": 6.264,
+      "term_years": 30
+    },
+    "current_owner": "Priya Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "333200.00"
+    },
+    "created_at": {
+      "$date": "2026-01-28T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-11T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000061"
+    },
+    "property_id": "PROP-00097",
+    "address": {
+      "street": "6119 Birchwood Ln",
+      "city": "Reston",
+      "state": "VA",
+      "zip": "20190"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 4,
+    "bathrooms": 2.5,
+    "square_feet": 1544,
+    "lot_size_acres": 0.04,
+    "year_built": 2022,
+    "listing_status": "sold",
+    "listing_price": {
+      "$numberDecimal": "944700.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "771300.00"
+    },
+    "last_sold_date": {
+      "$date": "2021-09-23T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "878400.00"
+      },
+      "interest_rate": 5.627,
+      "term_years": 30
+    },
+    "current_owner": "Felix Lindqvist",
+    "tax_assessed_value": {
+      "$numberDecimal": "738600.00"
+    },
+    "created_at": {
+      "$date": "2026-08-15T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-16T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000062"
+    },
+    "property_id": "PROP-00098",
+    "address": {
+      "street": "1976 Poplar Ter",
+      "city": "Vienna",
+      "state": "VA",
+      "zip": "22180"
+    },
+    "property_type": "single_family",
+    "bedrooms": 3,
+    "bathrooms": 2.0,
+    "square_feet": 3376,
+    "lot_size_acres": 0.682,
+    "year_built": 2024,
+    "listing_status": "off_market",
+    "listing_price": {
+      "$numberDecimal": "1405000.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1042400.00"
+    },
+    "last_sold_date": {
+      "$date": "2019-11-01T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1219500.00"
+      },
+      "interest_rate": 5.295,
+      "term_years": 15
+    },
+    "current_owner": "Thomas Santos",
+    "tax_assessed_value": {
+      "$numberDecimal": "1280900.00"
+    },
+    "created_at": {
+      "$date": "2026-07-17T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-08-20T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000063"
+    },
+    "property_id": "PROP-00099",
+    "address": {
+      "street": "6659 Birchwood Dr",
+      "city": "Bethesda",
+      "state": "MD",
+      "zip": "20814"
+    },
+    "property_type": "single_family",
+    "bedrooms": 4,
+    "bathrooms": 1.0,
+    "square_feet": 4521,
+    "lot_size_acres": 0.552,
+    "year_built": 1957,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1782600.00"
+    },
+    "last_sold_price": null,
+    "last_sold_date": null,
+    "mortgage": {
+      "loan_type": "conventional",
+      "loan_amount": {
+        "$numberDecimal": "1436900.00"
+      },
+      "interest_rate": 6.356,
+      "term_years": 30
+    },
+    "current_owner": "Leah Delacroix",
+    "tax_assessed_value": {
+      "$numberDecimal": "1697000.00"
+    },
+    "created_at": {
+      "$date": "2026-07-26T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-07-29T00:00:00Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "000000000000000000000064"
+    },
+    "property_id": "PROP-00100",
+    "address": {
+      "street": "5458 Juniper Ct",
+      "city": "McLean",
+      "state": "VA",
+      "zip": "22101"
+    },
+    "property_type": "townhouse",
+    "bedrooms": 2,
+    "bathrooms": 1.5,
+    "square_feet": 2127,
+    "lot_size_acres": 0.036,
+    "year_built": 1995,
+    "listing_status": "active",
+    "listing_price": {
+      "$numberDecimal": "1285200.00"
+    },
+    "last_sold_price": {
+      "$numberDecimal": "1146800.00"
+    },
+    "last_sold_date": {
+      "$date": "2022-07-06T00:00:00Z"
+    },
+    "mortgage": {
+      "loan_type": "FHA",
+      "loan_amount": {
+        "$numberDecimal": "1225500.00"
+      },
+      "interest_rate": 7.222,
+      "term_years": 30
+    },
+    "current_owner": "Leah Moreau",
+    "tax_assessed_value": {
+      "$numberDecimal": "1057900.00"
+    },
+    "created_at": {
+      "$date": "2026-01-05T00:00:00Z"
+    },
+    "updated_at": {
+      "$date": "2026-03-17T00:00:00Z"
+    }
+  }
+]

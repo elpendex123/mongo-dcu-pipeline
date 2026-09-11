@@ -1,0 +1,127 @@
+# Local development stack.
+#
+# MongoDB and MySQL run as containers standing in for DocumentDB and RDS. S3 is
+# the real thing - the dev buckets in the AWS account - because file pickup,
+# the copy-then-delete move between buckets and report upload are exactly the
+# paths most likely to behave differently against a stand-in, and storage for a
+# few small text files costs a fraction of a cent per month.
+#
+#   docker compose up --build           start the stack
+#   docker compose run --rm seed        reset the properties collection
+#   docker compose logs -f app          follow the pipeline's narrative
+#   docker compose down -v              stop and discard the local data
+
+services:
+  mongo:
+    # Pinned to 5.0 to match DocumentDB 5.0 compatibility. A newer MongoDB
+    # would accept queries DocumentDB rejects, which would make local success a
+    # poor predictor of QA.
+    image: mongo:5.0
+    container_name: mongo-dcu-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  mysql:
+    image: mysql:8.0
+    container_name: mongo-dcu-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: devroot
+      MYSQL_DATABASE: mongo_dcu
+      MYSQL_USER: mongo_dcu
+      MYSQL_PASSWORD: devpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # Applied by the image's entrypoint on first start of an empty data
+      # directory. The application never runs DDL itself - it would need
+      # permission to alter its own tables, which is more than it should have.
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-pdevroot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      args:
+        # The host user's id, so the container can read the mounted ~/.aws and
+        # write to the mounted logs directory. Overridden in .env if the host
+        # user is not 1000.
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+    container_name: mongo-dcu-app
+    env_file:
+      - .env
+    environment:
+      APP_ENV: dev
+      MONGO_URI: mongodb://mongo:27017
+      MYSQL_HOST: mysql
+      MYSQL_USER: mongo_dcu
+      MYSQL_PASSWORD: devpassword
+      MYSQL_DATABASE: mongo_dcu
+      # SES is off locally. The summary goes to the log instead, which is where
+      # whoever is running the stack is already looking.
+      SES_ENABLED: "false"
+    ports:
+      - "9090:9090"
+    volumes:
+      # Real S3 needs real credentials. Mounted read-only rather than copied
+      # into the image or passed as environment variables. The path is /app
+      # because that is the container user's home directory.
+      - ${HOME}/.aws:/app/.aws:ro
+      # The directory Splunk monitors. A named volume rather than a bind mount:
+      # the container writes as a non-root user, and a host directory Docker
+      # creates on first run is owned by root, which the container then cannot
+      # write to. The Splunk service mounts this same volume, which is the
+      # local equivalent of the emptyDir it shares with the app pod in QA and
+      # production.
+      #
+      #   docker compose exec app tail -f /var/log/mongo-dcu/app.log
+      - app-logs:/var/log/mongo-dcu
+    depends_on:
+      mongo:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # One-shot. Drops the properties collection, recreates its indexes and
+  # reloads all 100 documents.
+  #
+  #   docker compose run --rm seed
+  seed:
+    build:
+      context: .
+      args:
+        APP_UID: ${APP_UID:-1000}
+        APP_GID: ${APP_GID:-1000}
+    container_name: mongo-dcu-seed
+    environment:
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DATABASE: mongo_dcu
+      MONGO_COLLECTION: properties
+    volumes:
+      - ./seed:/seed:ro
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: ["python", "/seed/seed.py"]
+    profiles:
+      - tools
+
+volumes:
+  mongo-data:
+  mysql-data:
+  app-logs:

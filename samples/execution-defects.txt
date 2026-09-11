@@ -1,0 +1,14 @@
+// The two execution-time defects on their own, with nothing blocking them.
+// Every line is syntactically valid, so all of them are executed.
+// Expected outcome: the file moves to the -failed bucket, with lines 6 and 9
+// reported as fail_execution and the others as success.
+
+db.properties.find({ "listing_status": "active" })
+
+// Typo in the field name: matches nothing, changes nothing.
+db.properties.updateMany({ "listing_stat": "active" }, { "$set": { "listing_status": "pending" } })
+
+// A property_id that was never seeded.
+db.properties.deleteOne({ "property_id": "PROP-99999" })
+
+db.properties.find({ "address.state": "MD" })

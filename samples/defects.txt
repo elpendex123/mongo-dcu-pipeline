@@ -1,0 +1,17 @@
+// The three defects that actually happen, one of each kind.
+// Expected outcome: the file moves to the -failed bucket.
+//
+// Note that line 8's defect is caught before the database is touched, so the
+// two execution defects below it are never attempted on this run. Fix line 8,
+// resubmit, and the remaining two will then be reported.
+
+// 1. A missing closing brace - a mistake of typing.
+db.properties.updateOne({ "property_id": "PROP-00007" }, { "$set": { "listing_status": "sold" } )
+
+// 2. A typo in a field name. Valid in every way, matches nothing, and would
+//    silently do nothing at all if it were not checked.
+db.properties.updateMany({ "listing_stat": "active" }, { "$set": { "listing_status": "pending" } })
+
+// 3. A property_id that does not exist - usually a copy-paste from the wrong
+//    row of a spreadsheet.
+db.properties.deleteOne({ "property_id": "PROP-99999" })

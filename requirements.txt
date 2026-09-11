@@ -12,3 +12,13 @@ pymongo==4.18.1
 # unquoted keys, single quotes and trailing commas are normal rather than
 # errors.
 json5==0.15.0
+
+# AWS SDK: S3 for file movement, SES for run summaries.
+boto3==1.43.92
+
+# MySQL driver. Pure Python, so the image needs no compiler and no MySQL
+# client libraries.
+PyMySQL==1.2.0
+
+# Metrics endpoint scraped by Prometheus.
+prometheus-client==0.26.0

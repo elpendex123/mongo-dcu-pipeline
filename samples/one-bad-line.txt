@@ -1,0 +1,8 @@
+// One line has a missing closing brace. Everything else is valid.
+// Expected outcome: the file moves to the -failed bucket, nothing is executed,
+// and the report names line 6 and the column the brace was opened at.
+
+db.properties.find({ "listing_status": "active" })
+db.properties.find({ "address.city": "Bethesda" })
+db.properties.find({ "bedrooms": { "$gte": 4 })
+db.properties.find({ "property_type": "townhouse" })
