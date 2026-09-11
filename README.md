@@ -62,6 +62,25 @@ docs/         architecture, runbooks, per-service notes
 
 The AWS footprint runs at roughly $0.53/hour while up and is torn down after every session. `scripts/status.sh` reports everything tagged `project=mongo-dcu-pipeline`; `scripts/nuke.sh` removes it independently of Terraform state, as a backstop for anything a destroy missed.
 
+## Documentation
+
+| Document | Covers |
+|---|---|
+| [docs/QUERY-FORMAT.md](docs/QUERY-FORMAT.md) | The query file format and all five validation checks |
+| [docs/DOCKER.md](docs/DOCKER.md) | The local development stack and the application image |
+| [docs/TERRAFORM.md](docs/TERRAFORM.md) | Stack layout, remote state, the S3 module, the dev scripts |
+| [docs/validation/](docs/validation/README.md) | Step-by-step checks for each completed phase |
+| [docs/ISSUES.md](docs/ISSUES.md) | Problems hit while building, what caused them and how they were fixed |
+
 ## Status
 
-Under active construction — see `docs/` for what is in place.
+Under active construction. Working today: the query parser and validator, the
+application runtime, the local Docker Compose stack, the Terraform remote state
+backend, and the dev S3 environment with its create, destroy, status and nuke
+scripts. A file dropped into the dev input bucket is validated, executed
+against a local MongoDB, routed to the success or failure bucket, reported on
+in two formats and recorded in MySQL.
+
+Still to come: the AWS environments (VPC, DocumentDB, RDS, EKS), the Helm
+chart, the QA to production promotion gate, observability, Splunk, and the
+Jenkins pipelines.
