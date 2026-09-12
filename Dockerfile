@@ -12,6 +12,18 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir --requirement requirements.txt
 
+# The Amazon RDS certificate bundle, required to connect to DocumentDB.
+#
+# DocumentDB enforces TLS and the driver has to verify the server against this
+# bundle - so the connection URI sets tlsCAFile to this path. Fetched with
+# Python rather than curl because the slim image has no curl, and adding one
+# purely for a build step would mean carrying it in production forever.
+#
+# Nothing in local dev needs it: the MongoDB container speaks plain TCP. It is
+# here because the image that runs in qa and prod is the same image.
+RUN python -c "import urllib.request; urllib.request.urlretrieve('https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem', '/etc/ssl/certs/global-bundle.pem')" \
+ && test -s /etc/ssl/certs/global-bundle.pem
+
 COPY app/ ./app/
 
 # Runs as a non-root user. The application needs to read query files, write

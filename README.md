@@ -60,7 +60,18 @@ docs/         architecture, runbooks, per-service notes
 
 ## Cost discipline
 
-The AWS footprint runs at roughly $0.53/hour while up and is torn down after every session. `scripts/status.sh` reports everything tagged `project=mongo-dcu-pipeline`; `scripts/nuke.sh` removes it independently of Terraform state, as a backstop for anything a destroy missed.
+The AWS footprint runs at roughly $0.57/hour fully up and is torn down after every session; qa and the data tier without a cluster are about $0.154/hour.
+
+| Script | Does |
+|---|---|
+| `scripts/status.sh` | Every resource, what it costs per hour, and a warning if anything billable is up |
+| `scripts/nuke.sh` | Force-deletes everything independently of Terraform state. `--dry-run` first, always |
+| `scripts/teardown.sh` | The enforced sequence: status → destroy → status → nuke → status |
+
+The state bucket, the container registry and the analytics bucket are on an
+explicit protection list. They carry the same project tag as everything else,
+and deleting the state bucket would not remove the resources it describes - it
+would remove the only record that they exist.
 
 ## Documentation
 
@@ -70,6 +81,8 @@ The AWS footprint runs at roughly $0.53/hour while up and is torn down after eve
 | [docs/DOCKER.md](docs/DOCKER.md) | The local development stack and the application image |
 | [docs/TERRAFORM.md](docs/TERRAFORM.md) | Stack layout, remote state, the S3 module, the dev scripts |
 | [docs/ECR.md](docs/ECR.md) | The container registry, the image tagging scheme, and how the cluster pulls |
+| [docs/DOCUMENTDB.md](docs/DOCUMENTDB.md) | The cluster, the enforced-TLS connection string, and the query subset |
+| [docs/RDS-MYSQL.md](docs/RDS-MYSQL.md) | The shared instance, why it has its own stack, and how three networks reach it |
 | [docs/validation/](docs/validation/README.md) | Step-by-step checks for each completed phase |
 | [docs/ISSUES.md](docs/ISSUES.md) | Problems hit while building, what caused them and how they were fixed |
 
@@ -84,6 +97,10 @@ local MongoDB, routed to the success or failure bucket, reported on in two
 formats and recorded in MySQL; the same image that does it is built and pushed
 to ECR by `scripts/build-push.sh`.
 
-Still to come: the AWS environments (VPC, DocumentDB, RDS, EKS), the Helm
-chart, the QA to production promotion gate, observability, Splunk, and the
-Jenkins pipelines.
+Also working: the qa AWS environment - a private VPC with no internet route,
+six VPC endpoints in place of a NAT gateway, a DocumentDB cluster, and a shared
+MySQL instance in its own stack, peered in, so that destroying qa cannot take
+prod's run history with it.
+
+Still to come: EKS, the Helm chart, the QA to production promotion gate,
+observability, Splunk, and the Jenkins pipelines.

@@ -10,6 +10,56 @@ BUCKET_ROLES=(input successful failed reports-json reports-log)
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# The environments that own a set of five buckets each.
+ENVIRONMENTS=(dev qa prod)
+
+# Resources that carry the project tag but must NEVER be deleted by nuke.sh.
+#
+# The Terraform state bucket is tagged project=mongo-dcu-pipeline like
+# everything else, which is correct for discovery and fatal for deletion:
+# deleting it does not remove the resources it describes, it removes the only
+# record that they exist - leaving a cluster and two databases billing with
+# nothing left that knows about them. The registry and the analytics bucket
+# belong to the permanent shared stack and are rebuilt by nobody.
+#
+# A discovery query and a deletion query are not the same query.
+protected_names() {
+  local account="$1"
+  printf '%s\n' \
+    "$PROJECT-tfstate-$account" \
+    "$PROJECT-analytics-exports-$account" \
+    "$PROJECT-app"
+}
+
+is_protected() {
+  local name="$1" account="$2" p
+  while read -r p; do
+    [[ "$name" == "$p" ]] && return 0
+  done < <(protected_names "$account")
+  return 1
+}
+
+# Approximate us-east-1 on-demand rates, USD per hour. Used only to show what
+# the account is costing right now - close enough to make a forgotten cluster
+# obvious, not a billing source of truth.
+RATE_EKS_CLUSTER=0.10
+RATE_NODE_T3_SMALL=0.0208
+RATE_DOCDB_T3_MEDIUM=0.077
+RATE_RDS_T3_MICRO=0.017
+RATE_VPC_ENDPOINT=0.01      # per interface endpoint, per availability zone
+RATE_NAT_GATEWAY=0.045      # nothing should ever create one of these
+
+# Adds to the running cost total. Bash has no floats, so the accumulator is
+# kept in millicents and divided at the end.
+COST_TOTAL_MILLI=0
+add_cost() {
+  local rate="$1" qty="${2:-1}"
+  local milli
+  milli=$(awk -v r="$rate" -v q="$qty" 'BEGIN { printf "%d", r * q * 100000 }')
+  COST_TOTAL_MILLI=$((COST_TOTAL_MILLI + milli))
+}
+cost_so_far() { awk -v m="$COST_TOTAL_MILLI" 'BEGIN { printf "%.3f", m / 100000 }'; }
+
 # Colour only when writing to a terminal, so Jenkins console output and piped
 # output stay free of escape codes.
 if [[ -t 1 ]]; then

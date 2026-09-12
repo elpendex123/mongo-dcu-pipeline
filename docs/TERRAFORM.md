@@ -253,6 +253,69 @@ left that knows they exist. The state bucket and the ECR repository therefore
 go on an explicit exclusion list in that script. A discovery query and a
 deletion query are not the same query.
 
+## The data tier
+
+`terraform/environments/shared-data/` holds one VPC and the shared MySQL
+instance. A third lifecycle, between the other two:
+
+| Stack | Holds | Lifecycle | Cost |
+|---|---|---|---|
+| `shared` | ECR repository, analytics bucket | Permanent | A few cents a month |
+| `shared-data` | Data tier VPC, RDS MySQL | Session-scoped | ~$0.02/hr |
+| `qa` / `prod` | VPC, endpoints, DocumentDB, buckets, secrets, IAM | Session-scoped, destroyed independently | ~$0.14/hr each |
+
+Not in `qa`, because qa is destroyed at the end of every session and that
+destroy would take prod's run history and its promotion tokens with it. Not in
+`shared` either, because an RDS instance left up the way the registry is left
+up is $12 a month. Each stack is now either permanent and free, or
+session-scoped and billable, and none is both.
+
+**Apply order: `shared-data` before `qa`.** The qa stack reads the data tier's
+outputs through a `terraform_remote_state` data source to build its peering
+connection, and fails at plan time if that stack has never been applied.
+
+### Who owns the peering connection
+
+qa does, not the data tier - including the return route that lives in the data
+tier's route table. The lifecycle then reads correctly: the peering exists
+because qa exists, and destroying qa takes it away. One stack writing a single
+route into another stack's route table is the price, and it is cheaper than the
+alternative, which is a connection that outlives the VPC it connects.
+
+Two details that produce an *active* peering connection and a hung connection:
+
+- **`allow_remote_vpc_dns_resolution` on both sides.** Without it a pod
+  resolving the RDS hostname gets the instance's public address, and the qa VPC
+  has no internet gateway.
+- **The return route goes in the data tier's PUBLIC route table**, because that
+  is where the RDS instance's subnets are.
+
+## The environment modules
+
+| Module | Produces | Worth knowing |
+|---|---|---|
+| `vpc/` | VPC, subnets across 2 AZs, route tables, optionally an IGW | Private by default. `create_public_subnets` is true only for the data tier |
+| `vpc-endpoints/` | S3 gateway endpoint plus six interface endpoints | Interface endpoints bill **per AZ**. Placed in one AZ deliberately: $0.06/hr instead of $0.12 |
+| `documentdb/` | Cluster, one instance, subnet group, parameter group, security group | TLS enforced; the URI needs `replicaSet=rs0` and `retryWrites=false` |
+| `rds/` | MySQL instance, subnet group, security group | Detects your public address at apply time for the admin rule |
+| `secrets-manager/` | One secret per entry, from a map | `recovery_window_days = 0`, or a destroyed environment leaves secrets billing and their names unusable |
+| `iam/` | The application policy, and the IRSA role once a cluster exists | The role is skipped while `oidc_provider_arn` is empty - it cannot trust a provider that does not exist yet |
+
+### Why the endpoint list has six entries
+
+`CLAUDE.md` §9 named four: S3, ECR, Secrets Manager, CloudWatch. Building it
+produced two more:
+
+- **`sts`** - IRSA obtains credentials by calling `AssumeRoleWithWebIdentity`.
+  Without a route to STS, a pod with a perfectly correct role gets no
+  credentials at all.
+- **`ec2`** - the VPC CNI calls the EC2 API to attach addresses to pods. Added
+  now rather than in Phase 7, so the cluster does not come up onto a wall.
+
+And `ecr.api` and `ecr.dkr` are two endpoints, not one: authentication and
+metadata go to one service, layer downloads to another. Layers themselves come
+from S3, so the free S3 gateway endpoint is required for a pull to work at all.
+
 ## Dev S3 scripts
 
 Four thin wrappers in `scripts/`, deliberately not Jenkins jobs - dev is

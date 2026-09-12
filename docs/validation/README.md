@@ -13,6 +13,7 @@ form, so it can be practised by hand as well as pasted.
 | 3 | [Parser and validator](PHASE-03-parser-validator.md) | All five validation checks, by test suite and by hand |
 | 4 | [Vertical slice](PHASE-04-vertical-slice.md) | A file routed end to end, with reports, history and metrics |
 | 5 | [Container registry](PHASE-05-ecr.md) | The shared stack, the image in ECR, and the trap in the tag query |
+| 6 | [AWS foundations](PHASE-06-aws-foundations.md) | The data tier, qa, and the three scripts that stop the account billing |
 
 ## Variables used in these guides
 

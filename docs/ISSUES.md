@@ -16,6 +16,9 @@ same pattern applies to a different service.
 | 6 | 4 | Log file silently never written | Checking the file rather than assuming |
 | 7 | 4 | Reports omitted every line that did not fail | Reading the first failure report |
 | 8 | 5 | The tag query that teardown will use also matches the state bucket | Reading the tag query output after applying the shared stack |
+| 9 | 6 | The destructive script could only be understood by running it | Running it, carelessly, to read its output |
+| 10 | 6 | DocumentDB and RDS share one API, and each reported the other's instances | Reading the first live status report |
+| 11 | 6 | The tag query reported resources that had already been deleted | Verifying the first full teardown |
 
 ---
 
@@ -392,3 +395,161 @@ this but never delete it".
 
 **Why it was caught.** By reading the output of a verification command that had
 already passed. Three ARNs where two were expected was the whole signal.
+
+---
+
+## 9. The script with no safe way to look at it
+
+**Phase 6.** A process failure as much as a code one, and worth writing down
+for that reason.
+
+**Symptom.** `nuke.sh` was newly written and I wanted to see what its discovery
+step found. I ran it as `./scripts/nuke.sh --yes 2>&1 | head -25`.
+
+`--yes` is the flag that skips the confirmation prompt. On a script whose
+entire purpose is force-deleting resources. The five dev buckets survived only
+because `head -25` closed the pipe and SIGPIPE killed the script before it
+reached the S3 section - roughly two hundred milliseconds of luck.
+
+**What was actually wrong.** Not the command, though the command was careless.
+The script had exactly two modes: refuse to run without a terminal, or delete
+everything. There was no way to answer "what would this do?" without arming it,
+so the only way to find out was to run it - which is precisely what happened.
+
+**Fix.** A `--dry-run` flag that stops immediately after discovery, before any
+confirmation is sought and before anything is armed. `--help` now says **"Run
+--dry-run first. Always."**, and `teardown.sh` runs the dry run itself and
+prints the result before invoking the real thing.
+
+```bash
+./scripts/nuke.sh --dry-run     # lists what would go, deletes nothing
+```
+
+**Generalises to.** A destructive tool needs a mode that explains itself. If
+inspecting it and executing it are the same action, people will execute it to
+inspect it - and the people most likely to do so are the ones who just wrote it
+and are most confident they know what it does.
+
+**Second-order lesson.** The near-miss was invisible in the output. The run
+looked like it printed discovery and stopped, which is exactly what a dry run
+would have looked like. Checking that the five buckets still existed was a
+deliberate act, not something the terminal volunteered.
+
+---
+
+## 10. Two services, one API, each reporting the other
+
+**Phase 6.** Found twice, in mirror image, before and after the first apply.
+
+**Symptom.** The first live `status.sh` run listed `mongo-dcu-pipeline-docdb-qa-1`
+under **both** DocumentDB and RDS:
+
+```
+DocumentDB
+  mongo-dcu-pipeline-docdb-qa-1  db.t3.medium  available   $0.077/hr
+RDS
+  mongo-dcu-pipeline-docdb-qa-1  db.t3.medium  available   $0.017/hr
+```
+
+Eight billable resources were reported as nine.
+
+**What was actually wrong.** DocumentDB is built on the RDS control plane and
+the two share one API surface. `aws rds describe-db-instances` returns
+DocumentDB instances, and `aws docdb describe-db-instances` returns RDS
+instances - each command answers about both services regardless of which name
+you called it by. Filtering on an identifier prefix, as both sections did,
+cannot tell them apart when the prefix is the project slug and both belong to
+the project.
+
+**The more serious half**, caught earlier and by luck, was in `nuke.sh`:
+
+```bash
+aws docdb describe-db-subnet-groups ... | select(.DBSubnetGroupName | startswith("mongo-dcu-pipeline"))
+```
+
+That matched `mongo-dcu-pipeline-rds` - the **MySQL** instance's subnet group -
+inside the DocumentDB teardown section, which runs before the RDS section. It
+would have failed harmlessly, because a subnet group in use cannot be deleted,
+and reported a warning that meant nothing. Had the ordering been reversed it
+would have quietly succeeded.
+
+**Fix.** Filter on the engine, not the name, wherever the API serves both:
+
+```bash
+select(.Engine == "docdb")              # DocumentDB sections
+select(.Engine | startswith("docdb") | not)   # RDS sections
+```
+
+and on the `-docdb-` infix rather than the project prefix for subnet groups,
+which carry no engine field.
+
+**Generalises to.** When one AWS API backs two services, the service name in
+the CLI command is a convenience, not a filter. Ask what a resource *is*, never
+what it is *called* - a naming convention is a thing this project controls, and
+therefore exactly the wrong thing to rely on for telling services apart.
+
+**Why it was caught.** The cost line said nine billable resources and the
+resources that cost money numbered eight. A total that does not match what you
+can count is the same signal as issue 7 - the arithmetic is the bug.
+
+---
+
+## 11. The teardown verification that could not verify a teardown
+
+**Phase 6.** Found in the last five minutes of the phase, checking the thing
+the whole phase was built to guarantee.
+
+**Symptom.** `teardown.sh` finished clean: 22 resources destroyed, `nuke.sh`
+found nothing left, the final status read `billable resources running: 0`. The
+independent check - the tag query the design names as the authoritative
+inventory - disagreed:
+
+```
+arn:aws:ec2:...:vpc-endpoint/vpce-00471e05b8fa6f22a
+arn:aws:ec2:...:subnet/subnet-08b92846f4c44d95d
+arn:aws:ec2:...:vpc-peering-connection/pcx-047d9300e88d669de
+   ... fifteen ARNs in total
+```
+
+**What was actually wrong.** Nothing, in the account. Asked directly, every one
+of them was gone:
+
+```
+InvalidVpcEndpointId.NotFound: The Vpc Endpoint Id 'vpce-...' does not exist
+InvalidSubnetID.NotFound:      The subnet ID 'subnet-...' does not exist
+pcx-047d9300e88d669de          deleted
+```
+
+The Resource Groups Tagging API is **eventually consistent**. It keeps
+returning ARNs for deleted resources for minutes, sometimes hours. It is an
+index over tags, not a live view of what exists, and nothing in its response
+distinguishes a live resource from one deleted ten minutes ago.
+
+**Why this was the dangerous version of the bug.** Not the false positive - a
+teardown that looks incomplete and is fine costs a few minutes of checking. The
+danger is the symmetry: an index that lags on deletion is an index that lags on
+*creation* too. A resource created moments ago may not appear in it at all. A
+`nuke.sh` that trusted the tag query alone would find nothing to delete and
+report success over a running cluster.
+
+**Fix.** The scripts already queried each service's own API for their real
+work - that part was right by accident of how they were written, not by design.
+What changed is that the distinction is now explicit and written down:
+
+- `status.sh`'s tag section is labelled **"lags deletions - advisory"**
+- `nuke.sh` discovers through per-service APIs, never the tag index
+- the Phase 6 validation guide had told the reader to confirm teardown with
+  the tag query, which was exactly backwards. It now says not to, and gives
+  the four per-service counts to use instead
+- `CLAUDE.md` §9 carries the caveat, because the design says tag-based
+  discovery is "what makes the status/nuke scripts reliable" and that sentence
+  needed the other half
+
+**Generalises to.** Tags are for finding things. They are not for proving
+absence. Any "is it all gone?" check has to ask the service that owns the
+resource - and the wording matters, because "the query returned nothing" and
+"nothing exists" are different statements about different systems.
+
+**Why it was caught.** By not believing a clean report. The teardown said zero,
+and the check ran anyway - and when the two disagreed, the answer was not to
+pick the one that was more convenient.
