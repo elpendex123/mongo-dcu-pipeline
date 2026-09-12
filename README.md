@@ -69,6 +69,7 @@ The AWS footprint runs at roughly $0.53/hour while up and is torn down after eve
 | [docs/QUERY-FORMAT.md](docs/QUERY-FORMAT.md) | The query file format and all five validation checks |
 | [docs/DOCKER.md](docs/DOCKER.md) | The local development stack and the application image |
 | [docs/TERRAFORM.md](docs/TERRAFORM.md) | Stack layout, remote state, the S3 module, the dev scripts |
+| [docs/ECR.md](docs/ECR.md) | The container registry, the image tagging scheme, and how the cluster pulls |
 | [docs/validation/](docs/validation/README.md) | Step-by-step checks for each completed phase |
 | [docs/ISSUES.md](docs/ISSUES.md) | Problems hit while building, what caused them and how they were fixed |
 
@@ -76,10 +77,12 @@ The AWS footprint runs at roughly $0.53/hour while up and is torn down after eve
 
 Under active construction. Working today: the query parser and validator, the
 application runtime, the local Docker Compose stack, the Terraform remote state
-backend, and the dev S3 environment with its create, destroy, status and nuke
-scripts. A file dropped into the dev input bucket is validated, executed
-against a local MongoDB, routed to the success or failure bucket, reported on
-in two formats and recorded in MySQL.
+backend, the dev S3 environment with its create, destroy, status and nuke
+scripts, and the shared stack holding the ECR repository the cluster will pull
+from. A file dropped into the dev input bucket is validated, executed against a
+local MongoDB, routed to the success or failure bucket, reported on in two
+formats and recorded in MySQL; the same image that does it is built and pushed
+to ECR by `scripts/build-push.sh`.
 
 Still to come: the AWS environments (VPC, DocumentDB, RDS, EKS), the Helm
 chart, the QA to production promotion gate, observability, Splunk, and the

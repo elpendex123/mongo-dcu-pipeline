@@ -12,6 +12,7 @@ form, so it can be practised by hand as well as pasted.
 | 2 | [Dev S3](PHASE-02-dev-s3.md) | The reusable module, the dev stack, and all four scripts |
 | 3 | [Parser and validator](PHASE-03-parser-validator.md) | All five validation checks, by test suite and by hand |
 | 4 | [Vertical slice](PHASE-04-vertical-slice.md) | A file routed end to end, with reports, history and metrics |
+| 5 | [Container registry](PHASE-05-ecr.md) | The shared stack, the image in ECR, and the trap in the tag query |
 
 ## Shared setup
 
@@ -43,7 +44,9 @@ git status --short                                  # expect: empty
 .venv/bin/python -m pytest                          # expect: 110 passed
 terraform -chdir=terraform/bootstrap plan           # expect: No changes
 terraform -chdir=terraform/environments/dev plan    # expect: No changes
+terraform -chdir=terraform/environments/shared plan # expect: No changes
 ./scripts/dev-s3-status.sh                          # expect: present: 5  absent: 0
+aws ecr list-images --repository-name mongo-dcu-pipeline-app --region us-east-1
 ```
 
 If the local stack is running, add:

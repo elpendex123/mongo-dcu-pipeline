@@ -187,6 +187,50 @@ terraform -chdir=~/Documents/PROJECTS/mongo-dcu-pipeline/terraform/environments/
   output -raw env_file_lines
 ```
 
+## The shared stack
+
+`terraform/environments/shared/` holds what belongs to neither qa nor prod: the
+ECR repository `mongo-dcu-pipeline-app` and the analytics exports bucket. Its
+own state key, and the tag `environment=shared`.
+
+The reason is lifecycle, not tidiness. qa and prod are created and destroyed
+repeatedly, and both run the same image. If the registry lived in the qa stack,
+`terraform destroy` on qa would delete the image prod runs. Separate state
+means an environment destroy cannot reach these resources at all - not because
+a rule forbids it, but because they are not in that environment's state.
+
+```bash
+# variable form
+terraform -chdir=$PROJECT_ROOT/terraform/environments/shared init
+terraform -chdir=$PROJECT_ROOT/terraform/environments/shared apply
+
+# expanded
+terraform -chdir=~/Documents/PROJECTS/mongo-dcu-pipeline/terraform/environments/shared apply
+```
+
+The analytics bucket is written out as plain resources rather than built from
+`modules/s3`. That module produces a set of five buckets named
+`{project}-{environment}-{role}-{account}`; this is a single bucket whose name
+carries no environment component at all. Putting it through the module would
+mean a name override and a relaxed environment validation for the sake of one
+bucket - more indirection than four protection resources written directly.
+
+Registry settings and the image tagging scheme are in [ECR.md](ECR.md).
+
+### The state bucket is tagged too
+
+`terraform/bootstrap` tags the state bucket `project=mongo-dcu-pipeline,
+environment=shared`, exactly like everything else, so the tag query returns
+three ARNs for `environment=shared` rather than two.
+
+That is right for discovery and dangerous for deletion. `nuke.sh` (Phase 6) is
+defined as force-delete everything carrying the project tag; run naively it
+would delete the state for every environment and the registry every environment
+pulls from - leaving the resources themselves running, billing, with nothing
+left that knows they exist. The state bucket and the ECR repository therefore
+go on an explicit exclusion list in that script. A discovery query and a
+deletion query are not the same query.
+
 ## Dev S3 scripts
 
 Four thin wrappers in `scripts/`, deliberately not Jenkins jobs - dev is

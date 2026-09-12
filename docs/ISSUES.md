@@ -15,6 +15,7 @@ same pattern applies to a different service.
 | 5 | 4 | Container could not read AWS credentials | First container run |
 | 6 | 4 | Log file silently never written | Checking the file rather than assuming |
 | 7 | 4 | Reports omitted every line that did not fail | Reading the first failure report |
+| 8 | 5 | The tag query that teardown will use also matches the state bucket | Reading the tag query output after applying the shared stack |
 
 ---
 
@@ -330,3 +331,44 @@ whether a reader could mistake an omission for an absence of anything to say.
 **Why it was caught.** By reading the generated report as its intended audience
 would, rather than by checking that the file landed in the right bucket. The
 routing was correct throughout; only the explanation was wrong.
+
+---
+
+## 8. The tag query that teardown will rely on also matches the state bucket
+
+**Phase 5.** Nothing broke. This is a trap found before it was stepped in.
+
+**Symptom.** After applying the shared stack, the tag query that
+`scripts/nuke.sh` will be built on in Phase 6 returned three ARNs, not two:
+
+```
+arn:aws:s3:::mongo-dcu-pipeline-analytics-exports-950639281723
+arn:aws:s3:::mongo-dcu-pipeline-tfstate-950639281723
+arn:aws:ecr:us-east-1:950639281723:repository/mongo-dcu-pipeline-app
+```
+
+**What is actually wrong.** The bootstrap stack tags the Terraform state bucket
+`project=mongo-dcu-pipeline, environment=shared`, exactly like everything else -
+which is correct for discovery and reporting, and fatal for deletion. `nuke.sh`
+is defined as *force-delete everything carrying the project tag, independently
+of Terraform state*. Run as written, it would delete the bucket holding the
+state for every environment, and the registry holding the image every
+environment runs.
+
+Deleting the state bucket does not destroy the AWS resources it describes. It
+destroys the only record of them - leaving a cluster, two databases and a
+dozen other billing resources running with nothing left that knows they exist.
+That is the precise failure the teardown tooling exists to prevent.
+
+**Fix.** Recorded here, and carried into Phase 6 as a requirement rather than a
+hope: `nuke.sh` takes an explicit exclusion list, and the state bucket and the
+ECR repository are on it. The rule it encodes is that a nuke operates on
+environments, never on what environments are rebuilt *from*.
+
+**Generalises to.** A discovery query and a deletion query are not the same
+query, even when they return the same shape. Anything that survives teardown on
+purpose has to be named somewhere, because tagging alone cannot express "find
+this but never delete it".
+
+**Why it was caught.** By reading the output of a verification command that had
+already passed. Three ARNs where two were expected was the whole signal.
