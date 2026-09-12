@@ -4,6 +4,32 @@ One repository, `mongo-dcu-pipeline-app`, holding the application image that
 both qa and prod run. It lives in the **shared** Terraform stack
 (`terraform/environments/shared/`), not in either environment.
 
+## Variables used on this page
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export PROJECT=mongo-dcu-pipeline
+export AWS_REGION=us-east-1
+export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+export REPO_URI=$(aws ecr describe-repositories --repository-names $PROJECT-app \
+  --region $AWS_REGION --query 'repositories[0].repositoryUri' --output text)
+export TAG=$(git -C $PROJECT_ROOT rev-parse --short HEAD)
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `PROJECT` | `mongo-dcu-pipeline` | Fixed. The project slug, and the value of the `project` tag |
+| `AWS_REGION` | `us-east-1` | Fixed for this project |
+| `ACCOUNT_ID` | `950639281723` | 12 digits, fixed per AWS account. From `aws sts get-caller-identity` |
+| `REPO_URI` | `950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-app` | **Assembled by AWS** from account, region and repository name. Read it back from the ECR API rather than typing it - that is exactly what `build-push.sh` does |
+| `TAG` | `142a514` | **Changes every commit.** Seven hex characters from `git rev-parse --short HEAD`, with a `-dirty` suffix if the tree is unclean |
+
+The ECR login password is also generated on demand - a ~2 KB token valid for
+12 hours, different on every call, which is why it is piped straight into
+`docker login` and never stored in a variable.
+
 ## Why it is shared
 
 qa and prod are created and destroyed repeatedly - that is the working pattern

@@ -3,6 +3,28 @@
 **What this phase built:** the reusable S3 module, the dev environment stack -
 the first on the remote backend - and the four `dev-s3-*` scripts.
 
+## Variables used in this guide
+
+Repeated here so the page stands alone; the full list, including the values AWS
+generates, is in [README.md](README.md).
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `ACCOUNT_ID` | `950639281723` | 12 digits, fixed per AWS account. From `aws sts get-caller-identity` |
+
+The five dev bucket names are all `mongo-dcu-pipeline-dev-<role>-$ACCOUNT_ID`,
+where `<role>` is `input`, `successful`, `failed`, `reports-json` or
+`reports-log`. `./scripts/dev-s3-status.sh` prints them, and the dev stack's
+`env_file_lines` output prints them in `.env` form.
+
+Every command below is given in a variable form and again fully expanded.
+
 ## 1. The five buckets exist and are protected
 
 ```bash

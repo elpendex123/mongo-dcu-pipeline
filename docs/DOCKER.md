@@ -24,6 +24,25 @@ flowchart LR
     APP <--> S3
 ```
 
+## Variables used on this page
+
+Set these once per shell. Every command below is given in a variable form and
+again fully expanded, so either can be pasted.
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export S3_INPUT_BUCKET=mongo-dcu-pipeline-dev-input-950639281723
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `S3_INPUT_BUCKET` | `mongo-dcu-pipeline-dev-input-950639281723` | `terraform -chdir=$PROJECT_ROOT/terraform/environments/dev output -raw env_file_lines`, which prints this and the other four bucket names in `.env` form. The trailing number is the AWS account ID |
+| `APP_UID` / `APP_GID` | `1000` | **Your own**, not a fixed value - `id -u` and `id -g`. Compose defaults to 1000; set them in `.env` if yours differ |
+
+`.env` holds these for the running containers; `.env.example` is the committed
+template. Nothing in a bucket name should ever be typed by hand.
+
 ## First run
 
 ```bash

@@ -17,6 +17,22 @@ one would just teach people to strip the notes out.
 A trailing semicolon is accepted. So are the things people actually type that
 strict JSON rejects: unquoted keys, single-quoted strings, a trailing comma.
 
+## Variables used on this page
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+
+**`$set`, `$match`, `$inc` and the rest are not shell variables.** They are
+MongoDB update and aggregation operators, and inside a query line they are
+literal text. This is why every query on this page quotes them - `"$set"` in
+double quotes inside a single-quoted argument stays exactly as written, while
+an unquoted `$set` pasted into a shell would expand to nothing.
+
 ## Grammar
 
 ```

@@ -7,6 +7,37 @@ lifecycle - and `scripts/build-push.sh`.
 **Cost:** a few cents a month for image storage. The $0.53/hr clock starts in
 Phase 6, not here.
 
+## Variables used in this guide
+
+Repeated here so the page stands alone; the full list, including the values AWS
+generates, is in [README.md](README.md).
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export PROJECT=mongo-dcu-pipeline
+export AWS_REGION=us-east-1
+export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+export REPO_URI=$(aws ecr describe-repositories --repository-names $PROJECT-app \
+  --region $AWS_REGION --query 'repositories[0].repositoryUri' --output text)
+export TAG=$(git -C $PROJECT_ROOT rev-parse --short HEAD)
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `PROJECT` | `mongo-dcu-pipeline` | Fixed. The project slug, and the value of the `project` tag |
+| `AWS_REGION` | `us-east-1` | Fixed for this project |
+| `ACCOUNT_ID` | `950639281723` | 12 digits, fixed per AWS account. From `aws sts get-caller-identity` |
+| `REPO_URI` | `950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-app` | **Assembled by AWS** from account, region and repository name. Read it from the ECR API rather than typing it |
+| `TAG` | `142a514` | **Changes every commit.** `git rev-parse --short HEAD`, with `-dirty` appended if the tree is unclean |
+
+The expanded commands below use `142a514`, the image actually in the registry
+when this guide was written. Substitute whatever `aws ecr list-images` shows
+you - after your own `build-push.sh` run it will be your current commit.
+
+Every command below is given in a variable form and again fully expanded.
+
 ## 1. The shared stack is applied and agrees with the code
 
 ```bash

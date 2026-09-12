@@ -3,6 +3,25 @@
 **What this phase built:** the directory tree, and `terraform/bootstrap/` - the
 stack that creates the S3 bucket every other stack uses as its backend.
 
+## Variables used in this guide
+
+Repeated here so the page stands alone; the full list, including the values AWS
+generates, is in [README.md](README.md).
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export STATE_BUCKET=mongo-dcu-pipeline-tfstate-$ACCOUNT_ID
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `ACCOUNT_ID` | `950639281723` | 12 digits, fixed per AWS account. From `aws sts get-caller-identity` |
+| `STATE_BUCKET` | `mongo-dcu-pipeline-tfstate-950639281723` | Derived, not invented: slug + `-tfstate-` + account ID. The account suffix is there because S3 bucket names are globally unique across every AWS account |
+
+Every command below is given in a variable form and again fully expanded.
+
 ## 1. The tree matches the design
 
 ```bash

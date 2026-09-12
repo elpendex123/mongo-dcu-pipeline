@@ -19,6 +19,26 @@ same pattern applies to a different service.
 
 ---
 
+## Variables used on this page
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export EDITOR=vim          # or nano, code -w, whatever you use
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `EDITOR` | `vim` | Your own preference. Usually already set |
+| `HOME` | `/home/enrique-coello` | Set by the shell. Shown here because a container has its own `HOME`, which is the whole subject of issue 5 |
+| `APP_UID` / `APP_GID` | `1000` | **Your own**, from `id -u` and `id -g` - the subject of issue 5 |
+
+`$bucket` and `$name` appear inside snippets below as loop variables. They are
+set by the `for` line immediately above them and are not something to set
+yourself.
+
+---
+
 ## 1. The exclusion list published the thing it was excluding
 
 **Phase 0.**

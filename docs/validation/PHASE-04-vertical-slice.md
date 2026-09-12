@@ -7,6 +7,30 @@ routed end to end.
 MongoDB and MySQL are containers standing in for DocumentDB and RDS. **S3 is
 real.**
 
+## Variables used in this guide
+
+Repeated here so the page stands alone; the full list, including the values AWS
+generates, is in [README.md](README.md).
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `ACCOUNT_ID` | `950639281723` | 12 digits, fixed per AWS account. From `aws sts get-caller-identity` |
+| `KEY` | `one-bad-line.txt.4f1c8a90-3b2e-4d17-9c55-1e0a7f6b2d84.report.log` | **Generated per run.** Source filename + the run's UUID. Section 5 sets it by listing the bucket rather than typing it - the UUID is different on every run and cannot be predicted |
+
+Inside the app container, MongoDB and MySQL are reached by service name -
+`mongodb://mongo:27017` and `mysql:3306` - not `localhost`. From your own shell
+they are `localhost:27017` and `localhost:3306`, because Compose publishes the
+ports. Both forms appear below; the difference is which side of the container
+boundary the command runs on.
+
+Every command below is given in a variable form and again fully expanded.
+
 ## 1. Start the stack
 
 ```bash

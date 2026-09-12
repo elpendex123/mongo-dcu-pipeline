@@ -3,6 +3,25 @@
 Drop any of these into the input bucket to exercise a path through the
 pipeline.
 
+## Variables used on this page
+
+```bash
+export S3_INPUT_BUCKET=mongo-dcu-pipeline-dev-input-950639281723
+export MONGO_URI=mongodb://localhost:27017
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `S3_INPUT_BUCKET` | `mongo-dcu-pipeline-dev-input-950639281723` | `terraform -chdir=terraform/environments/dev output -raw env_file_lines`. Also in `.env`. The trailing number is the AWS account ID |
+| `MONGO_URI` | `mongodb://localhost:27017` | The local Compose container, from outside it. **From inside** the app container it is `mongodb://mongo:27017` - the service name, not localhost |
+
+In qa and prod `MONGO_URI` is a DocumentDB endpoint instead - a generated
+hostname of the form
+`mongo-dcu-pipeline-docdb-qa.cluster-cxyz123abc45.us-east-1.docdb.amazonaws.com`,
+where the middle portion is assigned by AWS at cluster creation and cannot be
+predicted. It is read from a Terraform output and stored in Secrets Manager,
+never typed.
+
 ```bash
 # variable form
 aws s3 cp samples/all-good.txt s3://$S3_INPUT_BUCKET/

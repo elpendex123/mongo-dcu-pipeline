@@ -3,6 +3,26 @@
 **What this phase built:** the five validation checks, in two modules with no
 I/O at all, and 110 tests.
 
+## Variables used in this guide
+
+Repeated here so the page stands alone; the full list, including the values AWS
+generates, is in [README.md](README.md).
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+
+No AWS and no variables beyond the path: this phase is pure logic, with no
+I/O anywhere in it. **`$set`, `$match`, `$graphLookup` and the rest are MongoDB
+operators, not shell variables** - inside a query line they are literal text,
+which is why every example quotes them.
+
+Every command below is given in a variable form and again fully expanded.
+
 ## 1. The test suite
 
 ```bash

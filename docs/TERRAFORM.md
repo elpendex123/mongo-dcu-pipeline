@@ -1,5 +1,27 @@
 # Terraform
 
+## Variables used on this page
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export PROJECT=mongo-dcu-pipeline
+export AWS_REGION=us-east-1
+export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+export STATE_BUCKET=$PROJECT-tfstate-$ACCOUNT_ID
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `PROJECT` | `mongo-dcu-pipeline` | Fixed. The project slug, and the value of the `project` tag |
+| `AWS_REGION` | `us-east-1` | Fixed for this project |
+| `ACCOUNT_ID` | `950639281723` | 12 digits, fixed per AWS account. From `aws sts get-caller-identity` |
+| `STATE_BUCKET` | `mongo-dcu-pipeline-tfstate-950639281723` | Derived, not invented: slug + `-tfstate-` + account ID. The suffix exists because S3 bucket names are globally unique across every AWS account |
+
+Terraform itself never reads these. They are for the commands on this page; the
+stacks derive the same values from `data.aws_caller_identity.current`, which is
+why nothing breaks in a different account.
+
 ## Layout
 
 ```

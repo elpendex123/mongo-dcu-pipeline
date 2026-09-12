@@ -3,6 +3,23 @@
 **What this phase built:** a git repository, a public GitHub repository, the
 README, and the rule about what is deliberately excluded from both.
 
+## Variables used in this guide
+
+Repeated here so the page stands alone; the full list, including the values AWS
+generates, is in [README.md](README.md).
+
+```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+```
+
+| Variable | Example value | Where it comes from |
+|---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+
+`$name` in section 3 is a loop variable, set by the `for` line above it.
+
+Every command below is given in a variable form and again fully expanded.
+
 ## 1. The repository exists and is clean
 
 ```bash
