@@ -75,16 +75,19 @@ repository:
 
 ```
 images in mongo-dcu-pipeline-app
-  TAGS                  PUSHED               SIZE
-  latest,13bb58b-dirty  2026-09-11 22:25:39  66.9 MiB
+  TAGS            PUSHED               SIZE
+  142a514,latest  2026-09-11 22:29:21  66.9 MiB
 
 deploy reference
-  950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-app:13bb58b-dirty
+  950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-app:142a514
 ```
 
-**A `-dirty` suffix is a feature, not a problem.** It means the working tree
-had uncommitted changes, so the image does not correspond to the commit its
-tag names. Commit first and rebuild to get a clean tag.
+**A `-dirty` suffix is a feature, not a problem.** Build with uncommitted
+changes in the tree and the tag comes out `142a514-dirty` instead, with a
+warning saying why. The image does not correspond to the commit its tag names,
+so it is not allowed to claim it does. Commit first and rebuild for a clean
+tag - and note that `latest` moves to the new image while the old tag stays
+where it was, which is exactly the behaviour mutable tags are enabled for.
 
 Independently:
 
@@ -104,7 +107,7 @@ aws ecr describe-image-scan-findings --repository-name $PROJECT-app \
 
 # expanded
 aws ecr describe-image-scan-findings --repository-name mongo-dcu-pipeline-app \
-  --image-id imageTag=13bb58b-dirty --region us-east-1 \
+  --image-id imageTag=142a514 --region us-east-1 \
   --query '{status:imageScanStatus.status,counts:imageScanFindingsSummary.findingSeverityCounts}'
 ```
 

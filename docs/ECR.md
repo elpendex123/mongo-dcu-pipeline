@@ -83,7 +83,7 @@ docker push $REPO_URI:$TAG
 
 # expanded
 REPO_URI=950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-app
-TAG=13bb58b
+TAG=142a514
 
 docker build --platform linux/amd64 -t $REPO_URI:$TAG .
 aws ecr get-login-password --region us-east-1 \
@@ -121,7 +121,7 @@ aws ecr describe-image-scan-findings --repository-name $PROJECT-app \
 
 # expanded
 aws ecr describe-image-scan-findings --repository-name mongo-dcu-pipeline-app \
-  --image-id imageTag=13bb58b --region us-east-1 \
+  --image-id imageTag=142a514 --region us-east-1 \
   --query '{status:imageScanStatus.status,counts:imageScanFindingsSummary.findingSeverityCounts}'
 ```
 
