@@ -42,6 +42,14 @@ app_uid: 1001
 # verification covers both.
 ses_enabled: true
 
+# kube-prometheus-stack, installed by playbooks/deploy-monitoring.yml. The
+# release name is also the prefix of Grafana's service account, which the
+# grafana IAM role in terraform/modules/observability trusts by name - change
+# both or neither. scripts/mirror-images.sh reads the chart version from here.
+monitoring_release: kube-prometheus-stack
+monitoring_chart: prometheus-community/kube-prometheus-stack
+monitoring_chart_version: "91.4.0"
+
 helm_repositories:
   - name: prometheus-community
     url: https://prometheus-community.github.io/helm-charts

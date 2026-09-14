@@ -1,0 +1,21 @@
+{{- if .Values.monitoring.enabled }}
+# Tells Prometheus to scrape the metrics port. kube-prometheus-stack's
+# Prometheus selects ServiceMonitors in every namespace
+# (helm/monitoring/values.yaml), so no release label is needed for it to be
+# found. Prometheus adds namespace, pod and service labels to every series,
+# which is what the alert rules and the dashboard select on.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "app.fullname" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: {{ .Values.monitoring.scrapeInterval }}
+{{- end }}

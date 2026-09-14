@@ -1,0 +1,264 @@
+{
+  "uid": "mongo-dcu-pipeline-aws",
+  "title": "mongo-dcu-pipeline - AWS managed services",
+  "description": "What Prometheus cannot see: DocumentDB and RDS from CloudWatch, and the cluster's nodes and pods from Container Insights. Dimensions are wildcards, so the same dashboard serves every environment.",
+  "tags": ["mongo-dcu-pipeline", "cloudwatch"],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": true,
+  "refresh": "1m",
+  "time": { "from": "now-3h", "to": "now" },
+  "panels": [
+    {
+      "id": 100,
+      "type": "row",
+      "title": "DocumentDB",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 },
+      "panels": []
+    },
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "DocumentDB CPU",
+      "gridPos": { "x": 0, "y": 1, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "AWS/DocDB",
+          "metricName": "CPUUtilization",
+          "dimensions": { "DBInstanceIdentifier": "*" },
+          "matchExact": false,
+          "statistic": "Average",
+          "period": "",
+          "label": "${PROP('Dim.DBInstanceIdentifier')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "DocumentDB connections",
+      "gridPos": { "x": 8, "y": 1, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "AWS/DocDB",
+          "metricName": "DatabaseConnections",
+          "dimensions": { "DBInstanceIdentifier": "*" },
+          "matchExact": false,
+          "statistic": "Maximum",
+          "period": "",
+          "label": "${PROP('Dim.DBInstanceIdentifier')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "DocumentDB freeable memory",
+      "gridPos": { "x": 16, "y": 1, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "AWS/DocDB",
+          "metricName": "FreeableMemory",
+          "dimensions": { "DBInstanceIdentifier": "*" },
+          "matchExact": false,
+          "statistic": "Minimum",
+          "period": "",
+          "label": "${PROP('Dim.DBInstanceIdentifier')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 101,
+      "type": "row",
+      "title": "RDS MySQL - shared run history",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 8, "w": 24, "h": 1 },
+      "panels": []
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "RDS CPU",
+      "gridPos": { "x": 0, "y": 9, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "AWS/RDS",
+          "metricName": "CPUUtilization",
+          "dimensions": { "DBInstanceIdentifier": "*" },
+          "matchExact": false,
+          "statistic": "Average",
+          "period": "",
+          "label": "${PROP('Dim.DBInstanceIdentifier')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "RDS connections",
+      "description": "Both environments' pods and the promotion gate share this instance.",
+      "gridPos": { "x": 8, "y": 9, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "AWS/RDS",
+          "metricName": "DatabaseConnections",
+          "dimensions": { "DBInstanceIdentifier": "*" },
+          "matchExact": false,
+          "statistic": "Maximum",
+          "period": "",
+          "label": "${PROP('Dim.DBInstanceIdentifier')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "RDS free storage",
+      "gridPos": { "x": 16, "y": 9, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "AWS/RDS",
+          "metricName": "FreeStorageSpace",
+          "dimensions": { "DBInstanceIdentifier": "*" },
+          "matchExact": false,
+          "statistic": "Minimum",
+          "period": "",
+          "label": "${PROP('Dim.DBInstanceIdentifier')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } }
+    },
+    {
+      "id": 102,
+      "type": "row",
+      "title": "EKS - Container Insights",
+      "collapsed": false,
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 1 },
+      "panels": []
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Node CPU",
+      "gridPos": { "x": 0, "y": 17, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "ContainerInsights",
+          "metricName": "node_cpu_utilization",
+          "dimensions": { "ClusterName": "*" },
+          "matchExact": true,
+          "statistic": "Average",
+          "period": "",
+          "label": "${PROP('Dim.ClusterName')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Node memory",
+      "gridPos": { "x": 8, "y": 17, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "ContainerInsights",
+          "metricName": "node_memory_utilization",
+          "dimensions": { "ClusterName": "*" },
+          "matchExact": true,
+          "statistic": "Average",
+          "period": "",
+          "label": "${PROP('Dim.ClusterName')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100 } }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Running pods",
+      "gridPos": { "x": 16, "y": 17, "w": 8, "h": 7 },
+      "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "cloudwatch", "uid": "cloudwatch" },
+          "queryMode": "Metrics",
+          "metricQueryType": 0,
+          "metricEditorMode": 0,
+          "region": "default",
+          "namespace": "ContainerInsights",
+          "metricName": "cluster_number_of_running_pods",
+          "dimensions": { "ClusterName": "*" },
+          "matchExact": true,
+          "statistic": "Maximum",
+          "period": "",
+          "label": "${PROP('Dim.ClusterName')}"
+        }
+      ],
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 0 } }
+    }
+  ]
+}

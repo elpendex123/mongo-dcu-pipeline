@@ -1,0 +1,62 @@
+{{- if .Values.monitoring.enabled }}
+{{- $ns := .Release.Namespace }}
+# The application's alerts. Crashlooping pods and nodes that are not Ready are
+# kube-prometheus-stack's default rules (KubePodCrashLooping, KubeNodeNotReady)
+# and are not repeated here; these are the failures only this application can
+# describe. No receiver sends them anywhere - they are read in the Alertmanager
+# and Grafana UIs.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "app.fullname" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: mongo-dcu-pipeline
+      rules:
+        # Refused files are not counted: a refusal is prod doing its job, and
+        # has an alert of its own.
+        - alert: MongoDcuRunFailureRateHigh
+          expr: |
+            (
+              sum(increase(files_processed_total{namespace="{{ $ns }}", status="failed"}[1h]))
+              /
+              clamp_min(sum(increase(files_processed_total{namespace="{{ $ns }}", status=~"success|failed"}[1h])), 1)
+            ) > {{ .Values.monitoring.alerts.failureRatio }}
+            and
+            sum(increase(files_processed_total{namespace="{{ $ns }}", status=~"success|failed"}[1h])) >= {{ .Values.monitoring.alerts.minimumFiles }}
+          labels:
+            severity: warning
+          annotations:
+            summary: More than {{ mulf .Values.monitoring.alerts.failureRatio 100 }}% of files failed in {{ $ns }} over the last hour
+            description: >-
+              {{ `{{ $value | humanizePercentage }}` }} of the files processed in the last hour
+              failed. Each failed file has a report naming its line and reason in the
+              reports-log bucket.
+
+        # The process is up and passing its probes, but the loop has stopped.
+        # This is how a hung AWS call presents (issues 17 and 20): no crash, no
+        # error, no restart - only no progress.
+        - alert: MongoDcuPollingStalled
+          expr: increase(poll_cycles_total{namespace="{{ $ns }}"}[5m]) == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: The polling loop in {{ $ns }} has not completed a cycle in 10 minutes
+            description: >-
+              The pod is running but not polling. Look for the last log line before it
+              went quiet - an AWS call with no endpoint or no region hangs rather than
+              failing.
+
+        - alert: MongoDcuFileRefused
+          expr: increase(files_processed_total{namespace="{{ $ns }}", status="refused"}[15m]) > 0
+          labels:
+            severity: warning
+          annotations:
+            summary: A file was refused in {{ $ns }}
+            description: >-
+              Nothing in it was executed. It was either never promoted or has already run -
+              the reason is in its report and the run summary email.
+{{- end }}

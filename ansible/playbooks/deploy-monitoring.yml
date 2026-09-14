@@ -1,0 +1,108 @@
+# kube-prometheus-stack into the monitoring namespace, from images mirrored
+# into ECR, plus the CloudWatch dashboard for the AWS managed services.
+#
+# Order, per environment:
+#   1. terraform apply              the monitoring endpoint, the CloudWatch add-on, Grafana's role
+#   2. configure-cluster.yml        namespaces and Helm repositories
+#   3. scripts/mirror-images.sh     once per chart version - this playbook checks, never copies
+#   4. this playbook
+#   5. the application chart        its ServiceMonitor and PrometheusRule need the CRDs installed here
+#
+# The mongo-dcu-pipeline-05-deploy-monitoring Jenkins job.
+#
+#   ansible-playbook playbooks/deploy-monitoring.yml -e target_env=qa
+
+- name: Monitoring
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Load the environment context
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/load-context.yml"
+
+    - name: Check the stack has the observability outputs
+      ansible.builtin.assert:
+        that:
+          - tf_env.grafana_role_arn is defined
+          - tf_env.grafana_role_arn | length > 0
+        fail_msg: >-
+          terraform/environments/{{ target_env }} has no grafana_role_arn output -
+          it was applied before Phase 10. Apply it again.
+        quiet: true
+
+    # A missing image is ImagePullBackOff ten minutes into a --wait, with the
+    # reason buried in a pod event. Checking first names the image and the fix.
+    - name: Check every image the release needs is in the ECR mirror
+      ansible.builtin.command:
+        argv: ["{{ repo_root }}/scripts/mirror-images.sh", --check]
+      register: mirror_check
+      changed_when: false
+      failed_when: false
+
+    - name: Stop if the mirror is incomplete
+      ansible.builtin.assert:
+        that: mirror_check.rc == 0
+        fail_msg: "{{ mirror_check.stdout_lines | select('search', 'missing') | list + ['run scripts/mirror-images.sh, then this playbook again'] }}"
+        success_msg: "{{ mirror_check.stdout_lines | select('search', 'mirrored') | list | length }} images present in the mirror"
+
+    - name: Make the output directory
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/../generated"
+        state: directory
+        mode: "0755"
+
+    - name: Render monitoring-values-{{ target_env }}.yaml
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/monitoring-values.yaml.j2"
+        dest: "{{ playbook_dir }}/../generated/monitoring-values-{{ target_env }}.yaml"
+        mode: "0644"
+
+    # The application ships its own dashboard in its chart. This one describes
+    # AWS services rather than the application, so it belongs to the monitoring
+    # deployment.
+    - name: Publish the AWS managed services dashboard
+      kubernetes.core.k8s:
+        context: "{{ kube_context }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: "{{ project }}-aws-dashboard"
+            namespace: "{{ monitoring_namespace }}"
+            labels:
+              app.kubernetes.io/part-of: "{{ project }}"
+              app.kubernetes.io/managed-by: ansible
+              grafana_dashboard: "1"
+          data:
+            aws-managed-services.json: "{{ lookup('ansible.builtin.file', playbook_dir ~ '/../files/dashboards/aws-managed-services.json') }}"
+
+    - name: Install or upgrade {{ monitoring_release }} {{ monitoring_chart_version }}
+      kubernetes.core.helm:
+        kube_context: "{{ kube_context }}"
+        release_name: "{{ monitoring_release }}"
+        chart_ref: "{{ monitoring_chart }}"
+        chart_version: "{{ monitoring_chart_version }}"
+        release_namespace: "{{ monitoring_namespace }}"
+        values_files:
+          - "{{ repo_root }}/helm/monitoring/values.yaml"
+          - "{{ playbook_dir }}/../generated/monitoring-values-{{ target_env }}.yaml"
+        wait: true
+        wait_timeout: 10m
+      register: monitoring_release_result
+
+    - name: List the monitoring pods
+      kubernetes.core.k8s_info:
+        context: "{{ kube_context }}"
+        kind: Pod
+        namespace: "{{ monitoring_namespace }}"
+      register: monitoring_pods
+
+    - name: Report the pods and how to reach the UIs
+      ansible.builtin.debug:
+        msg:
+          - "revision {{ monitoring_release_result.status.revision | default('?') }}, {{ monitoring_pods.resources | length }} pods:"
+          - "{{ monitoring_pods.resources | map(attribute='metadata.name') | zip(monitoring_pods.resources | map(attribute='status.phase')) | map('join', ' ') | list }}"
+          - "Grafana:      kubectl --context {{ kube_context }} -n {{ monitoring_namespace }} port-forward svc/{{ monitoring_release }}-grafana 3000:80"
+          - "Prometheus:   kubectl --context {{ kube_context }} -n {{ monitoring_namespace }} port-forward svc/{{ monitoring_release }}-prometheus 9091:9090"
+          - "Alertmanager: kubectl --context {{ kube_context }} -n {{ monitoring_namespace }} port-forward svc/{{ monitoring_release }}-alertmanager 9093:9093"

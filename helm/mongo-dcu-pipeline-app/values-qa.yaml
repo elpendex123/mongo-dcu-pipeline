@@ -5,3 +5,7 @@ config:
   # Verbose on purpose. qa is where a file is understood before it is promoted,
   # and the log is the narrative Splunk ingests in Phase 11.
   LOG_LEVEL: DEBUG
+
+# kube-prometheus-stack is installed before this chart in every AWS environment.
+monitoring:
+  enabled: true

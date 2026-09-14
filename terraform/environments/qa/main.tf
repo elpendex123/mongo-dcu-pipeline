@@ -195,3 +195,19 @@ module "iam" {
   service_account_namespace = var.app_namespace
   service_account_name      = var.app_service_account
 }
+
+# ------------------------------------------------------------- observability
+
+module "observability" {
+  source = "../../modules/observability"
+
+  project           = var.project
+  environment       = "qa"
+  cluster_name      = module.eks.cluster_name
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+
+  # The add-on's pods need nodes, and EKS does not report the add-on active
+  # until they are running.
+  depends_on = [module.eks]
+}

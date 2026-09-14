@@ -1,0 +1,15 @@
+{{- if .Values.monitoring.enabled }}
+# The application's Grafana dashboard, shipped with the application. Grafana's
+# dashboard sidecar loads every ConfigMap carrying the grafana_dashboard label,
+# in any namespace, so a new chart version brings its own dashboard with it.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-dashboard
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  mongo-dcu-pipeline.json: |-
+{{ .Files.Get "files/grafana-dashboard.json" | indent 4 }}
+{{- end }}

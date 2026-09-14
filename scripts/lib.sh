@@ -44,6 +44,7 @@ is_protected() {
 # obvious, not a billing source of truth.
 RATE_EKS_CLUSTER=0.10
 RATE_NODE_T3_SMALL=0.0208
+RATE_NODE_T3_MEDIUM=0.0416
 RATE_DOCDB_T3_MEDIUM=0.077
 RATE_RDS_T3_MICRO=0.017
 RATE_VPC_ENDPOINT=0.01      # per interface endpoint, per availability zone
@@ -54,7 +55,8 @@ RATE_NAT_GATEWAY=0.045      # nothing should ever create one of these
 # total that is quietly too low.
 node_rate() {
   case "$1" in
-    t3.small) echo "$RATE_NODE_T3_SMALL" ;;
+    t3.small)  echo "$RATE_NODE_T3_SMALL" ;;
+    t3.medium) echo "$RATE_NODE_T3_MEDIUM" ;;
     *)        echo "" ;;
   esac
 }

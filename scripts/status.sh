@@ -71,6 +71,20 @@ else
   echo "  ${C_DIM}repository absent${C_RESET}"
 fi
 
+# Upstream images copied in by scripts/mirror-images.sh, for clusters that
+# cannot reach a public registry. Part of the permanent shared stack too.
+mirrors=$(aws ecr describe-repositories --region "$AWS_REGION" --output json 2>/dev/null \
+  | jq -r --arg p "$PROJECT-mirror/" '.repositories[]? | select(.repositoryName | startswith($p)) | .repositoryName' | sort || true)
+if [[ -n "$mirrors" ]]; then
+  echo "  mirrored upstream images:"
+  while read -r r; do
+    [[ -z "$r" ]] && continue
+    tags=$(aws ecr describe-images --repository-name "$r" --region "$AWS_REGION" --output json 2>/dev/null \
+      | jq -r '[.imageDetails[]?.imageTags[]?] | join(",")')
+    printf '    %-52s %s\n' "${r#"$PROJECT-mirror/"}" "${tags:-${C_DIM}empty${C_RESET}}"
+  done <<<"$mirrors"
+fi
+
 # ----------------------------------------------------------------------- EKS
 head1 "EKS"
 clusters=$(aws eks list-clusters --region "$AWS_REGION" --query 'clusters' --output json 2>/dev/null \

@@ -35,7 +35,7 @@ variable "interface_endpoint_azs" {
 }
 
 variable "interface_services" {
-  description = "Service names, without the com.amazonaws.<region>. prefix. Defaults cover what the application and the cluster need with no internet route: ECR for image pulls (two endpoints - the API and the Docker registry are separate services), Secrets Manager for credentials, CloudWatch Logs for the log stream, STS because IRSA obtains credentials by calling AssumeRoleWithWebIdentity, EC2 because the VPC CNI calls the EC2 API to attach addresses to pods, and email for the SES run summary - its private DNS answers both email.<region>.amazonaws.com, which boto3 calls, and email.<region>.api.aws."
+  description = "Service names, without the com.amazonaws.<region>. prefix. Defaults cover what the application and the cluster need with no internet route: ECR for image pulls (two endpoints - the API and the Docker registry are separate services), Secrets Manager for credentials, CloudWatch Logs for the log stream, STS because IRSA obtains credentials by calling AssumeRoleWithWebIdentity, EC2 because the VPC CNI calls the EC2 API to attach addresses to pods, email for the SES run summary - its private DNS answers both email.<region>.amazonaws.com, which boto3 calls, and email.<region>.api.aws - and monitoring for CloudWatch metrics, which Grafana's CloudWatch data source reads with GetMetricData."
   type        = list(string)
-  default     = ["ecr.api", "ecr.dkr", "secretsmanager", "logs", "sts", "ec2", "email"]
+  default     = ["ecr.api", "ecr.dkr", "secretsmanager", "logs", "sts", "ec2", "email", "monitoring"]
 }

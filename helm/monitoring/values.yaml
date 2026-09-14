@@ -1,0 +1,160 @@
+# kube-prometheus-stack - the values that are the same in every environment.
+#
+#   helm/monitoring/values.yaml                     this file, committed: what runs, how big, which rules
+#   ansible/generated/monitoring-values-<env>.yaml  per session: the ECR mirror host, Grafana's IAM
+#                                                   role, the region, the CloudWatch data source
+#
+# Installed by ansible/playbooks/deploy-monitoring.yml, at the chart version
+# pinned in ansible/inventory/group_vars/all.yml. The release name is
+# kube-prometheus-stack, and Grafana's IAM role trusts a service account named
+# after it.
+
+global:
+  # Every image comes from the project's ECR mirror. The cluster has no route
+  # to quay.io, registry.k8s.io or Docker Hub. The generated values set the
+  # host; empty here renders the upstream references, which is how
+  # scripts/mirror-images.sh learns what to copy.
+  imageRegistry: ""
+
+crds:
+  enabled: true
+
+# ----------------------------------------------------------- what EKS hides
+#
+# etcd, the scheduler and the controller manager belong to the managed control
+# plane and are not reachable from the nodes; kube-proxy's metrics listen on
+# localhost. Scraping them produces targets that are down from the first minute
+# and alerts that fire at install - noise that teaches everyone to ignore the
+# alert list.
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+defaultRules:
+  rules:
+    etcd: false
+    kubeControllerManager: false
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false
+    kubeProxy: false
+    windows: false
+
+windowsMonitoring:
+  enabled: false
+
+# ------------------------------------------------------------------ operator
+prometheusOperator:
+  # The admission webhooks check PrometheusRule syntax at apply time, and their
+  # certificate comes from a Job whose image is on ghcr.io - a fourth public
+  # registry. Rules are checked with promtool before they are committed instead
+  # (docs/PROMETHEUS-GRAFANA.md).
+  admissionWebhooks:
+    enabled: false
+  # Without that Job nothing creates the TLS secret the operator's own web
+  # endpoint mounts, and the operator pod never starts.
+  tls:
+    enabled: false
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+# ---------------------------------------------------------------- prometheus
+prometheus:
+  prometheusSpec:
+    # A session lasts hours. Durable run history is MySQL's job; this is for
+    # watching the session that is happening.
+    retention: 1d
+    retentionSize: 1GB
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+
+    # Select ServiceMonitors, PodMonitors and rules from every namespace, not
+    # only the ones this release created. The application chart ships its own.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    probeSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 384Mi
+      limits:
+        memory: 768Mi
+
+# -------------------------------------------------------------- alertmanager
+#
+# UI only. The chart's default configuration routes everything to a receiver
+# that sends nothing, and that is the point: every run already sends an SES
+# summary, and a second channel for overlapping events trains people to ignore
+# both. Alerts are read in the Alertmanager UI and in Grafana.
+alertmanager:
+  alertmanagerSpec:
+    retention: 24h
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 64Mi
+
+# ------------------------------------------------------------------- grafana
+grafana:
+  defaultDashboardsTimezone: utc
+
+  # Dashboards come from ConfigMaps and data sources from values, so nothing a
+  # restart would lose is kept in Grafana itself.
+  persistence:
+    enabled: false
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+  sidecar:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 48Mi
+      limits:
+        memory: 96Mi
+
+  grafana.ini:
+    # No internet route. Update checks, the news feed and avatar lookups would
+    # each wait on a connection that cannot succeed.
+    analytics:
+      check_for_updates: false
+      check_for_plugin_updates: false
+      reporting_enabled: false
+    news:
+      news_feed_enabled: false
+    security:
+      disable_gravatar: true
+
+# ---------------------------------------------------------------- exporters
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
+prometheus-node-exporter:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      memory: 64Mi

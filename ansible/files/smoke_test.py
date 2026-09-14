@@ -214,6 +214,17 @@ def ses_endpoint() -> str:
     return f"{resolved}, port 443 open"
 
 
+def cloudwatch_monitoring_endpoint() -> str:
+    # Grafana's CloudWatch data source calls GetMetricData on
+    # monitoring.<region>.amazonaws.com. Without the interface endpoint that name
+    # resolves to a public address and every CloudWatch panel times out - issue
+    # 20's pattern, for a different API. No call is made: this proves the path.
+    host = f"monitoring.{os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')}.amazonaws.com"
+    resolved = resolves_privately(host)
+    port_open(host, 443)
+    return f"{resolved}, port 443 open"
+
+
 def node_credentials_unreachable() -> str:
     # The launch template sets the metadata hop limit to 1. A pod is one hop
     # further from the metadata service than the node is, so the token response
@@ -248,6 +259,7 @@ def main() -> int:
     run("S3: another environment's bucket denied", foreign_bucket)
     run("Secrets Manager: own secret readable", own_secret)
     run("SES API reachable through its endpoint", ses_endpoint)
+    run("CloudWatch metrics API reachable through its endpoint", cloudwatch_monitoring_endpoint)
     run("node role credentials unreachable from the pod", node_credentials_unreachable)
 
     failed = [r["check"] for r in RESULTS if not r["ok"]]

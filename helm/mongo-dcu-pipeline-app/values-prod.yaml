@@ -4,6 +4,10 @@
 config:
   LOG_LEVEL: INFO
 
+# kube-prometheus-stack is installed before this chart in every AWS environment.
+monitoring:
+  enabled: true
+
 resources:
   requests:
     cpu: 100m

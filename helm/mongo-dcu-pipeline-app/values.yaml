@@ -42,6 +42,21 @@ secretRefs: []
 metrics:
   port: 9090
 
+# Prometheus integration: a ServiceMonitor for the metrics port, the
+# application's alert rules, and its Grafana dashboard. Off by default, because
+# the first two are kube-prometheus-stack's custom resources and a cluster
+# without that release refuses them - install it first
+# (ansible/playbooks/deploy-monitoring.yml), then turn this on.
+monitoring:
+  enabled: false
+  scrapeInterval: 30s
+  alerts:
+    # Files, not lines: one bad line fails its whole file, and the file is what
+    # someone has to fix. At this project's volume an hour holds a handful of
+    # files, so a ratio alone would fire on a single failure - hence a minimum.
+    failureRatio: 0.5
+    minimumFiles: 2
+
 resources:
   requests:
     cpu: 100m

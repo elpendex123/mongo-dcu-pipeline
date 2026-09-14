@@ -73,6 +73,16 @@ output "irsa_role_arn" {
   value       = module.iam.role_arn
 }
 
+output "grafana_role_arn" {
+  description = "Grafana's IAM role, for its CloudWatch data source. Annotated onto its service account by ansible/templates/monitoring-values.yaml.j2."
+  value       = module.observability.grafana_role_arn
+}
+
+output "cloudwatch_agent_role_arn" {
+  description = "The Container Insights agent's IAM role."
+  value       = module.observability.cloudwatch_agent_role_arn
+}
+
 output "irsa_status" {
   description = "The service account annotation, or why there is none."
   value       = module.iam.service_account_annotation

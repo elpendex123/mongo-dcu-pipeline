@@ -78,6 +78,65 @@ resource "aws_ecr_lifecycle_policy" "app" {
 }
 
 # ---------------------------------------------------------------------------
+# ECR - mirrored upstream images
+# ---------------------------------------------------------------------------
+
+# kube-prometheus-stack's images live on quay.io, registry.k8s.io and Docker
+# Hub, and a node in a VPC with no internet route reaches none of them. They are
+# copied here by scripts/mirror-images.sh and pulled through the same ECR
+# endpoints as the application image.
+#
+# Copied rather than served by an ECR pull-through cache: a cache for Docker Hub
+# needs Docker Hub credentials kept in Secrets Manager, and a copy is pinned to
+# exactly the tag the chart asked for on the day it was made.
+resource "aws_ecr_repository" "mirror" {
+  for_each = toset(var.mirrored_repositories)
+
+  name = "${var.project}-mirror/${each.value}"
+
+  # Immutable, unlike the application repository. A mirrored tag should keep
+  # meaning what upstream meant when it was copied; nothing here moves a tag.
+  image_tag_mutability = "IMMUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  encryption_configuration {
+    encryption_type = "AES256"
+  }
+
+  # Re-creatable from upstream in a few minutes by the mirror script.
+  force_delete = true
+
+  tags = {
+    Name = "${var.project}-mirror/${each.value}"
+    role = "mirror"
+  }
+}
+
+resource "aws_ecr_lifecycle_policy" "mirror" {
+  for_each = aws_ecr_repository.mirror
+
+  repository = each.value.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep only the ${var.mirror_retention_count} most recent tags"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = var.mirror_retention_count
+        }
+        action = { type = "expire" }
+      },
+    ]
+  })
+}
+
+# ---------------------------------------------------------------------------
 # Analytics exports bucket
 # ---------------------------------------------------------------------------
 

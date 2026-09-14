@@ -13,6 +13,16 @@ output "ecr_registry" {
   value       = split("/", aws_ecr_repository.app.repository_url)[0]
 }
 
+output "mirror_registry" {
+  description = "What kube-prometheus-stack's global.imageRegistry is set to: the registry host plus the mirror prefix, so upstream paths resolve unchanged beneath it."
+  value       = "${split("/", aws_ecr_repository.app.repository_url)[0]}/${var.project}-mirror"
+}
+
+output "mirrored_repositories" {
+  description = "The mirror repositories, by full name."
+  value       = sort([for repository in aws_ecr_repository.mirror : repository.name])
+}
+
 output "analytics_bucket" {
   description = "Cross-environment bucket for periodic exports of RDS run history."
   value       = aws_s3_bucket.analytics_exports.id

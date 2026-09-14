@@ -24,7 +24,7 @@
     job_configmap: "{{ project }}-smoke-tests"
     # How many checks files/smoke_test.py runs. Asserted, because a check that
     # never reports is not a check that passed.
-    smoke_expected_checks: 13
+    smoke_expected_checks: 14
 
   tasks:
     - name: Load the environment context
@@ -99,7 +99,7 @@
               name: "{{ k8s_secret_docdb }}"
           - secretRef:
               name: "{{ k8s_secret_rds }}"
-        # Longer than 13 checks at their 15-second cap, so the script always
+        # Longer than 14 checks at their 15-second cap, so the script always
         # reaches its summary line and the pod is never killed mid-check - a
         # Job killed at its deadline takes its pod, and its log, with it.
         job_timeout_seconds: 270

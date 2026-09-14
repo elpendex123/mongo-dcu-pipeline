@@ -7,5 +7,5 @@ description: >-
 type: application
 # The chart's own version. What actually deploys is image.tag, which names a
 # commit; appVersion is informational only.
-version: 0.1.0
+version: 0.2.0
 appVersion: "0.1.0"
