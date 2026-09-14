@@ -101,7 +101,7 @@ formats and recorded in MySQL; the same image that does it is built and pushed
 to ECR by `scripts/build-push.sh`.
 
 Also built and verified against live AWS, then torn down, as it is at the end of
-every session: the qa environment - a private VPC with no internet route, six
+every session: the qa environment - a private VPC with no internet route, seven
 VPC endpoints in place of a NAT gateway, a DocumentDB cluster, and a shared
 MySQL instance in its own stack, peered in, so that destroying qa cannot take
 prod's run history with it.
@@ -111,7 +111,7 @@ with no internet route; the application's IAM role bound to one Kubernetes
 service account, with the node's own credentials out of reach from any pod;
 and the Ansible playbooks that configure it - Secrets Manager copied into
 Kubernetes Secrets, the MySQL schema applied, DocumentDB reseeded from inside
-the cluster, and twelve connectivity checks run from a pod under the
+the cluster, and thirteen connectivity checks run from a pod under the
 application's own identity before anything is deployed.
 
 And the application itself, deployed there by its Helm chart: a file uploaded

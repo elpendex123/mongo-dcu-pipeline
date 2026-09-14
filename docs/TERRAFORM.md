@@ -188,7 +188,8 @@ environment's ARNs.
 | Environment | `force_destroy` | Why |
 |---|---|---|
 | `dev` | `true` | Created and destroyed constantly, holds only throwaway test files |
-| `qa` / `prod` | `false` | A destroy should fail loudly on a non-empty bucket rather than take real run history with it |
+| `qa` | `true` | Files are run here repeatedly and its buckets hold only test files and their reports - durable run history is in MySQL. A destroy that fails on leftover objects at the end of every session is a teardown that gets skipped |
+| `prod` | Decided in Phase 9 | The one environment where the files and reports are the record of what ran against production |
 
 ## The dev environment
 
