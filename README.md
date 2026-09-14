@@ -50,12 +50,12 @@ app/          Python application source
 terraform/    bootstrap/, modules/, and environments/ (dev, qa, prod, shared, shared-data)
 ansible/      cluster configuration, secrets bridging, database seeding
 helm/         the application's chart
-jenkins/      declarative pipelines, one per job
+jenkins/      declarative pipelines, one per job (Phase 12)
 scripts/      provisioning, status, and teardown tooling
 sql/          RDS schema
 seed/         DocumentDB seed data
 samples/      example query files
-docs/         architecture, runbooks, per-service notes
+docs/         per-service notes, a validation guide per phase, the issues log
 ```
 
 ## Cost discipline

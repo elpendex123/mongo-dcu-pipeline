@@ -104,8 +104,15 @@ run_lines            one row per line in the file, with status and error
 email_notifications  one row per SES message sent
 ```
 
-DDL is in `sql/schema.sql`. Applied by the Ansible bootstrap playbook in
-Phase 7; until then, by hand.
+DDL is in `sql/schema.sql`, applied by `ansible/playbooks/rds-schema.yml` from
+the Jenkins host over the public endpoint - safe to rerun, since the schema is
+`CREATE ... IF NOT EXISTS` throughout. See
+[ANSIBLE.md](ANSIBLE.md#why-the-schema-is-applied-from-this-machine).
+
+The commands below use the `mysql` client, which this project's tooling does
+not install. Without it, the PyMySQL snippet in
+[the Phase 8 guide](validation/PHASE-08-helm-first-run.md#6-the-run-history)
+reads the same tables using `.venv`.
 
 ## Connecting
 

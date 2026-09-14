@@ -8,6 +8,13 @@ role, eleven Ansible playbooks, and EKS-aware `status.sh`, `nuke.sh` and
 $0.154/hr of Phase 6 plus $0.10 for the control plane and $0.042 for two nodes.
 Run `teardown.sh` at the end of the session.
 
+> **Since Phase 8** the qa stack has a seventh interface endpoint (SES) and the
+> smoke tests run thirteen checks. Applying qa today reports 12 billable
+> resources at $0.306/hr, and `configure-cluster.yml` ends with `all 13 of 13
+> in-cluster checks ran and passed`.
+> [PHASE-08-helm-first-run.md](PHASE-08-helm-first-run.md) is the current guide
+> for bringing qa up; this one stays as the record of what Phase 7 proved.
+
 ## Variables used in this guide
 
 Repeated here so the page stands alone; the full list, including the values AWS

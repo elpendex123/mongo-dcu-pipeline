@@ -50,12 +50,14 @@ examples below are only there to show the shape.
 | Value | Example | How it is produced |
 |---|---|---|
 | `REPO_URI` | `950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-app` | Assembled by ECR. Read with `aws ecr describe-repositories` |
-| `TAG` | `142a514` | `git rev-parse --short HEAD`. Seven hex characters, different at every commit; `-dirty` appended on an unclean tree |
+| `TAG` | `9733c70` | `git rev-parse --short HEAD`. Seven hex characters, different at every commit; `-dirty` appended on an unclean tree |
 | `run_id` | `4f1c8a90-3b2e-4d17-9c55-1e0a7f6b2d84` | A UUID the application generates per run. Appears in log lines, report filenames and the `runs` table |
 | Report key | `one-bad-line.txt.4f1c8a90-….report.log` | Source filename + `run_id`, so the two report formats correlate. Never the same twice |
 | DocumentDB endpoint | `mongo-dcu-pipeline-docdb-qa.cluster-cxyz123abc45.us-east-1.docdb.amazonaws.com` | AWS assigns the `cluster-` portion at creation. From a Terraform output, into Secrets Manager (Phase 6) |
 | RDS endpoint | `mongo-dcu-pipeline-rds.cxyz123abc45.us-east-1.rds.amazonaws.com` | Same shape, same story (Phase 6) |
 | Secret ARN | `arn:aws:secretsmanager:us-east-1:950639281723:secret:mongo-dcu-pipeline/qa/docdb-AbCdEf` | Secrets Manager appends six random characters, so a deleted and recreated secret never collides with the old ARN (Phase 6) |
+| IRSA role ARN | `arn:aws:iam::950639281723:role/mongo-dcu-pipeline-qa-app` | Name derived, ARN from the Terraform output `irsa_role_arn` (Phase 7) |
+| Helm revision | `1`, `2`, `3`, `4` | Helm, one per install, upgrade and rollback. Read with `helm history` (Phase 8) |
 | ECR login password | a ~2 KB token | `aws ecr get-login-password`, valid 12 hours, different every call. Piped into `docker login`, never stored |
 | `promotion_token` | `9f2c1d7a4b8e6350` | Generated on a fully successful QA run, single use, 24-hour expiry (Phase 9) |
 
@@ -85,6 +87,10 @@ terraform -chdir=terraform/environments/dev plan    # expect: No changes
 terraform -chdir=terraform/environments/shared plan # expect: No changes
 ./scripts/dev-s3-status.sh                          # expect: present: 5  absent: 0
 aws ecr list-images --repository-name mongo-dcu-pipeline-app --region us-east-1
+./scripts/status.sh | tail -6                      # expect: billable resources running: 0
+(cd ansible && ansible-playbook playbooks/prereqs.yml)   # expect: failed=0
+helm lint helm/mongo-dcu-pipeline-app -f helm/mongo-dcu-pipeline-app/values-qa.yaml \
+  -f ansible/generated/values-qa.yaml              # expect: 0 chart(s) failed - needs a rendered values file
 ```
 
 If the local stack is running, add:

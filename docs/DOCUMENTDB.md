@@ -101,7 +101,9 @@ one operation, runnable whenever test data has been mutated past usefulness.
 Dropping rather than deleting documents means the indexes reset too.
 
 Ansible playbook, and the `mongo-dcu-pipeline-11-documentdb-reset` Jenkins job.
-Arrives in Phase 7 with the rest of the Ansible layer.
+Built in Phase 7 as `ansible/playbooks/documentdb-reset.yml`. The cluster has no
+public endpoint, so the reset runs as a Kubernetes Job inside it, from the
+application image - see [ANSIBLE.md](ANSIBLE.md#jobs-inside-the-cluster).
 
 ## Cost
 

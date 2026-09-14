@@ -93,7 +93,7 @@ flowchart TD
     HR --> SCH[rds schema]
     SCH --> SMK[smoke tests]
     SMK --> VAL[render values]
-    VAL --> HELM["helm upgrade --install<br/>(Phase 8)"]
+    VAL --> HELM["helm upgrade --install<br/>(see HELM.md)"]
     SEC -.-> RESET["documentdb-reset<br/>(run deliberately)"]
 ```
 
@@ -147,9 +147,9 @@ locally.
 
 Every Job meets the `restricted` Pod Security Standard the namespace enforces:
 non-root by number, no privilege escalation, every capability dropped, a
-read-only root filesystem, the runtime's seccomp profile. That is the standard
-the Helm chart has to meet in Phase 8, so a Job admitted here is early evidence
-the chart will be too.
+read-only root filesystem, the runtime's seccomp profile. The application's
+Helm chart meets the same standard, and its pod passed the same admission in
+Phase 8 - a Job admitted here was early evidence it would.
 
 ## Why the schema is applied from this machine
 

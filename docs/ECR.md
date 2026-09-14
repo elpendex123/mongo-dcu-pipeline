@@ -24,7 +24,7 @@ export TAG=$(git -C $PROJECT_ROOT rev-parse --short HEAD)
 | `AWS_REGION` | `us-east-1` | Fixed for this project |
 | `ACCOUNT_ID` | `950639281723` | 12 digits, fixed per AWS account. From `aws sts get-caller-identity` |
 | `REPO_URI` | `950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-app` | **Assembled by AWS** from account, region and repository name. Read it back from the ECR API rather than typing it - that is exactly what `build-push.sh` does |
-| `TAG` | `142a514` | **Changes every commit.** Seven hex characters from `git rev-parse --short HEAD`, with a `-dirty` suffix if the tree is unclean |
+| `TAG` | `9733c70` | **Changes every commit.** Seven hex characters from `git rev-parse --short HEAD`, with a `-dirty` suffix if the tree is unclean |
 
 The ECR login password is also generated on demand - a ~2 KB token valid for
 12 hours, different on every call, which is why it is piped straight into
@@ -109,7 +109,7 @@ docker push $REPO_URI:$TAG
 
 # expanded
 REPO_URI=950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-app
-TAG=142a514
+TAG=9733c70
 
 docker build --platform linux/amd64 -t $REPO_URI:$TAG .
 aws ecr get-login-password --region us-east-1 \
@@ -147,7 +147,7 @@ aws ecr describe-image-scan-findings --repository-name $PROJECT-app \
 
 # expanded
 aws ecr describe-image-scan-findings --repository-name mongo-dcu-pipeline-app \
-  --image-id imageTag=142a514 --region us-east-1 \
+  --image-id imageTag=9733c70 --region us-east-1 \
   --query '{status:imageScanStatus.status,counts:imageScanFindingsSummary.findingSeverityCounts}'
 ```
 
@@ -159,16 +159,25 @@ nothing - which is what a freshly built `python:3.12-slim` image should say.
 Nothing in the cluster logs in with a password. Worth being clear about,
 because it is the part that looks like it must need a secret and does not:
 
-- The node group's instance role carries `AmazonEC2ContainerRegistryReadOnly`,
-  and the kubelet uses it to pull images.
-- The pod itself reaches ECR - and S3, Secrets Manager and CloudWatch - through
+- The node group's instance role carries `AmazonEC2ContainerRegistryPullOnly` -
+  pull only, it cannot push or delete - and the kubelet uses it to pull images.
+- The node reaches ECR - and the pod reaches S3, Secrets Manager, STS and SES - through
   **VPC interface endpoints**, with no NAT gateway and no internet egress
   (§9). Two endpoints are needed, not one: `ecr.api` for the authentication
   and metadata calls, and `ecr.dkr` for the layer downloads. The layers
   themselves come from S3, which is why the free S3 gateway endpoint is also
   required for pulls to work at all.
 
-That wiring is built in Phase 6; this page is the registry half of it.
+The endpoints were built in Phase 6 and proven by the first pulls in Phase 7:
+with no internet route, a node pulled the 70 MB application image in under
+four seconds. The node group itself is in `terraform/modules/eks/`; this page is
+the registry half of it.
+
+**Images from public registries cannot be pulled this way.** quay.io, Docker
+Hub and registry.k8s.io are on the internet, which this VPC cannot reach. Any
+community chart - kube-prometheus-stack in Phase 10, the Splunk image in Phase
+11 - needs its images copied into ECR or served through an ECR pull-through
+cache first.
 
 ## Cost
 
