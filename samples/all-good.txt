@@ -10,7 +10,9 @@ db.properties.find({ "property_type": "condo" }, { "property_id": 1, "listing_pr
 db.properties.aggregate([{ "$match": { "address.state": "VA" } }, { "$group": { "_id": "$address.city", "listings": { "$sum": 1 } } }, { "$sort": { "listings": -1 } }])
 db.properties.aggregate([{ "$match": { "listing_status": "sold" } }, { "$project": { "property_id": 1, "listing_price": 1, "_id": 0 } }, { "$limit": 10 }])
 
-// Writes. Safe to run repeatedly in dev and qa.
+// Writes. Run once per DocumentDB reset: the first updateMany turns Reston's
+// active listings to pending, so on a second run its filter matches nothing -
+// which the pipeline reports as fail_execution, by design. Reset before rerunning.
 db.properties.updateMany({ "address.city": "Reston", "listing_status": "active" }, { "$set": { "listing_status": "pending" } })
 db.properties.updateOne({ "property_id": "PROP-00042" }, { "$set": { "listing_status": "sold" }, "$currentDate": { "updated_at": true } })
 db.properties.updateMany({ "address.state": "VA" }, { "$inc": { "tax_assessed_value": 2500 } })

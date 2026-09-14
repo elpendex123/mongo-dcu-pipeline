@@ -85,6 +85,7 @@ would remove the only record that they exist.
 | [docs/RDS-MYSQL.md](docs/RDS-MYSQL.md) | The shared instance, why it has its own stack, and how three networks reach it |
 | [docs/KUBERNETES.md](docs/KUBERNETES.md) | The cluster with no internet route, its three identities, and pod security |
 | [docs/ANSIBLE.md](docs/ANSIBLE.md) | The playbooks between apply and deploy: the secrets bridge, schema, seeding, and smoke tests |
+| [docs/HELM.md](docs/HELM.md) | The application chart: layered values, the decisions in its templates, and the upgrade and rollback lifecycle |
 | [docs/validation/](docs/validation/README.md) | Step-by-step checks for each completed phase |
 | [docs/ISSUES.md](docs/ISSUES.md) | Problems hit while building, what caused them and how they were fixed |
 
@@ -113,5 +114,11 @@ Kubernetes Secrets, the MySQL schema applied, DocumentDB reseeded from inside
 the cluster, and twelve connectivity checks run from a pod under the
 application's own identity before anything is deployed.
 
-Still to come: the Helm chart, the QA to production promotion gate,
-observability, Splunk, and the Jenkins pipelines.
+And the application itself, deployed there by its Helm chart: a file uploaded
+to the qa input bucket is validated, executed against DocumentDB, routed to the
+success or failure bucket, reported on in both formats, recorded in the shared
+MySQL instance and summarised in an email - with a deliberately broken release
+rolled back to the last good one.
+
+Still to come: the QA to production promotion gate, observability, Splunk, and
+the Jenkins pipelines.

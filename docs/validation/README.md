@@ -15,6 +15,7 @@ form, so it can be practised by hand as well as pasted.
 | 5 | [Container registry](PHASE-05-ecr.md) | The shared stack, the image in ECR, and the trap in the tag query |
 | 6 | [AWS foundations](PHASE-06-aws-foundations.md) | The data tier, qa, and the three scripts that stop the account billing |
 | 7 | [EKS and Ansible](PHASE-07-eks-ansible.md) | A cluster with no internet route, IRSA, the secrets bridge, and twelve checks from inside a pod |
+| 8 | [Helm and the first cloud run](PHASE-08-helm-first-run.md) | The chart, a file processed in AWS with history and email, and a broken deploy rolled back |
 
 ## Variables used in these guides
 

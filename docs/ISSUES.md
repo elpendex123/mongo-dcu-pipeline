@@ -28,6 +28,8 @@ same pattern applies to a different service.
 | 18 | 7 | The status playbook built a list as text, and Ansible no longer turns text back into a list | Its first live run |
 | 19 | 8 | The IAM policy's comment described a sender restriction the statement did not have | Reading the SES permission before the first email |
 | 20 | 8 | SES had no VPC endpoint, so the first run summary email would have hung the application | Asking which endpoint boto3's SES client calls |
+| 21 | 8 | LOG_LEVEL=DEBUG turned on pymongo's driver logging: 57% of all lines | Reading the first pod's log before reading its results |
+| 22 | 8 | A sample's own comment said it was safe to rerun; its README, correctly, said it was not | Re-uploading it to prove the rollback |
 
 ---
 
@@ -967,3 +969,107 @@ always the same.
 
 **Why it was caught.** Asking, before the deploy, how the one AWS call not yet
 exercised would reach AWS.
+
+---
+
+## 21. DEBUG logging was mostly pymongo's
+
+**Phase 8.** The first application pod in qa.
+
+**Symptom.** The pod started and worked - but its log was hard to read. Of 191
+lines in its first three minutes, 109 came from the MongoDB driver:
+
+```
+     44 component=main
+     37 component=pymongo.connection
+     30 component=pymongo.topology
+     21 component=pymongo.serverSelection
+     20 component=pymongo.command
+     18 component=executor
+```
+
+Each one a JSON blob of heartbeats, connection-pool checkouts and server
+selection, repeated every few seconds whether or not a file was being
+processed.
+
+**What was actually wrong.** qa runs with `LOG_LEVEL=DEBUG`, deliberately - the
+pipeline's narrative is what Splunk ingests in Phase 11. The level is set on
+the root logger, so every library that logs through Python's `logging` module
+inherited it. The logger already capped `boto3`, `botocore`, `urllib3` and
+`s3transfer` at WARNING, for exactly this reason. pymongo was not on the list:
+locally the application had only ever run at INFO, where pymongo is quiet.
+pymongo 4 added structured driver logging at DEBUG, and qa was the first place
+DEBUG ever ran.
+
+This mattered beyond readability. The same lines go to the file the Splunk
+sidecar will monitor, against a free tier capped at 500 MB a day; at idle this
+pod wrote about 86 KB every three minutes, more than half of it noise.
+
+**Fix.** `pymongo` joined the capped list. The upgraded pod - Helm revision 2,
+image `9733c70` - wrote no pymongo lines at all in its first 40 seconds, and
+the pipeline's own DEBUG lines are still there.
+
+**Generalises to.** A root log level is a setting for every library in the
+process, not only your own code. When DEBUG is turned on for the first time in
+an environment, read the log for who is talking before reading what they say.
+
+**Why it was caught.** Counting lines per component in the first real pod's
+log, before looking at whether the files had been processed.
+
+---
+
+## 22. A sample's comment said it was safe to rerun; its README said it was not
+
+**Phase 8.** The file uploaded to prove the pod was working again after the
+Helm rollback.
+
+**Symptom.** `samples/all-good.txt` had succeeded in qa, 9 of 9. Uploaded again
+as `all-good-after-rollback.txt`, on the rolled-back revision, it failed:
+
+```
+  EXE! line   14  db.properties.updateMany({ "address.city": "Reston", "listing_status": "active" }, { "$set": { "listing_status": "pending" } })
+            matched_count=0  modified_count=0
+            -> filter matched no documents, so nothing was updated - check the field names and values in the filter
+```
+
+**What was actually wrong.** Not the pod, not the rollback, not the executor.
+The failure is designed: the executor reports a write that matched nothing as
+`fail_execution` - that is how it catches a typo'd field name - and line 14
+changes exactly the documents its filter selects, so after the first run there
+were no active Reston listings left to match.
+
+It was documented, too. `samples/README.md` says so in as many words: running
+`all-good.txt` repeatedly makes the second run's `updateMany` match nothing,
+"that is the intended behaviour, not a flaw ... and it is why the reset
+exists."
+
+What was wrong was two other places saying the opposite:
+
+- the sample file's own comment, directly over the writes:
+  `// Writes. Safe to run repeatedly in dev and qa.`
+- the design document: qa writes "may be run repeatedly without concern" -
+  true for the database, which does not mind, and not for a check whose verdict
+  depends on the state the first run left behind
+
+And the proof step went by the comment. The file was chosen for the rollback
+check because it was the known-good one, without rereading the README that
+says when it is not.
+
+The recovery itself was fine: the pod picked the file up within 15 seconds,
+executed it, routed it, reported it, and sent the email. After
+`documentdb-reset.yml`, the same file uploaded as `all-good-after-reset.txt`
+succeeded 9 of 9 on the same revision.
+
+**Fix.** The comment now agrees with the README: run once per reset, and why.
+The design document's "run repeatedly" line carries the catch. The README gains
+the qa form of the reset, next to the local one it already had. The Phase 8
+guide reseeds before any rerun. The executor is unchanged.
+
+**Generalises to.** When two descriptions of the same behaviour disagree, the
+one closest to the code - here, a comment in the file itself - is the one
+people read, so it is the one that has to be right. And "idempotent" has to be
+asked of the checks as well as the data.
+
+**Why it was caught.** Proving the rollback with a real file rather than a
+Ready pod, and reading the failed report instead of assuming the rollback had
+broken something.

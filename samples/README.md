@@ -6,12 +6,16 @@ pipeline.
 ## Variables used on this page
 
 ```bash
+export PROJECT_ROOT=~/Documents/PROJECTS/mongo-dcu-pipeline
+export ENV=qa
 export S3_INPUT_BUCKET=mongo-dcu-pipeline-dev-input-950639281723
 export MONGO_URI=mongodb://localhost:27017
 ```
 
 | Variable | Example value | Where it comes from |
 |---|---|---|
+| `PROJECT_ROOT` | `~/Documents/PROJECTS/mongo-dcu-pipeline` | Wherever you cloned the repository |
+| `ENV` | `qa` | Your choice: `qa` or `prod`. Used only by the in-cluster reset, which has no dev form |
 | `S3_INPUT_BUCKET` | `mongo-dcu-pipeline-dev-input-950639281723` | `terraform -chdir=terraform/environments/dev output -raw env_file_lines`. Also in `.env`. The trailing number is the AWS account ID |
 | `MONGO_URI` | `mongodb://localhost:27017` | The local Compose container, from outside it. **From inside** the app container it is `mongodb://mongo:27017` - the service name, not localhost |
 
@@ -59,4 +63,15 @@ MONGO_URI=$MONGO_URI python3 seed/seed.py
 
 # expanded
 MONGO_URI=mongodb://localhost:27017 python3 seed/seed.py
+```
+
+In qa or prod, where DocumentDB has no public endpoint, the reset runs as a Job
+inside the cluster:
+
+```bash
+# variable form
+cd $PROJECT_ROOT/ansible && ansible-playbook playbooks/documentdb-reset.yml -e target_env=$ENV
+
+# expanded
+cd ~/Documents/PROJECTS/mongo-dcu-pipeline/ansible && ansible-playbook playbooks/documentdb-reset.yml -e target_env=qa
 ```
