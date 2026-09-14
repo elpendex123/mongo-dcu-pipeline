@@ -73,7 +73,7 @@ Order is fixed: apply `shared-data`, apply the environment, then this.
 | `helm-repos.yml` | 5 | `prometheus-community` and `grafana` |
 | `documentdb-reset.yml` | 6 | Drop, reindex, reseed - as a Job inside the cluster |
 | `rds-schema.yml` | 7 | `sql/schema.sql` against the shared MySQL instance, from this machine |
-| `smoke-tests.yml` | 8 | Checks from this machine, then twelve checks from a pod |
+| `smoke-tests.yml` | 8 | Checks from this machine, then thirteen checks from a pod |
 | `render-values.yml` | 9 | `ansible/generated/values-<env>.yaml` for the Helm chart |
 | `status.yml` | 10 | One JSON status document, the counterpart to `status.sh` |
 | `configure-cluster.yml` | - | 1-5, 7, 8 and 9 in dependency order. The `-02-configure-cluster` Jenkins job |
@@ -186,6 +186,7 @@ application's Secrets:
 | Own input bucket readable | The IAM policy, and the S3 gateway endpoint |
 | Another environment's bucket denied | The policy is scoped to one environment |
 | Own secret readable | The Secrets Manager endpoint and policy |
+| SES API reachable | The `email` endpoint, and that it answers the hostname boto3's SES client calls (issue 20) |
 | Node role credentials unreachable | The launch template's metadata hop limit |
 
 Each check prints one JSON line; the playbook reads them back from the pod log

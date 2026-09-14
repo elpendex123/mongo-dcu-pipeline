@@ -47,7 +47,7 @@ export NAMESPACE=$ENV
 | Control plane logs | Off | Billed per GB, and EKS creates the log group outside Terraform where a destroy leaves it behind |
 
 Cost: $0.10/hr for the control plane plus $0.0208/hr per node - **$0.142/hr**
-on top of the $0.154/hr the rest of qa costs.
+on top of the $0.164/hr the rest of qa and the data tier cost - **$0.306/hr** in all.
 
 ## How a cluster works with no internet route
 
@@ -61,7 +61,7 @@ flowchart LR
         subgraph Nodes["2x t3.small"]
             POD["app pod"]
         end
-        EP["interface endpoints<br/>ecr.api  ecr.dkr  sts  ec2<br/>secretsmanager  logs"]
+        EP["interface endpoints<br/>ecr.api  ecr.dkr  sts  ec2<br/>secretsmanager  logs  email"]
         S3GW["S3 gateway endpoint"]
         DOC[("DocumentDB")]
     end
@@ -90,6 +90,7 @@ like something else:
 | Pod gets an address | `ec2` endpoint (the VPC CNI calls the EC2 API) | Pods stuck in `ContainerCreating`, `aws-node` logs show EC2 timeouts |
 | Pod gets IRSA credentials | `sts` endpoint, **and `AWS_DEFAULT_REGION` in the pod** - botocore ignores `AWS_REGION`, and with no region calls the global `sts.amazonaws.com` | The first AWS call hangs for minutes with no error (issue 17) |
 | Pod reaches MySQL | Peering, routes both ways, DNS resolution across the peering | Name resolves to a public address and the connection times out |
+| App sends the run summary email | `email` endpoint, whose private DNS answers `email.us-east-1.amazonaws.com` - the name boto3 calls | The first email hangs the polling loop behind it (issue 20) |
 
 ## Three identities
 

@@ -26,6 +26,8 @@ same pattern applies to a different service.
 | 16 | 7 | The smoke tests passed a run that stopped after 7 of 12 checks | Counting the PASS lines against the checks the script runs |
 | 17 | 7 | IRSA credentials hung: botocore called the global STS endpoint | A debug pod printing the URL of every STS request |
 | 18 | 7 | The status playbook built a list as text, and Ansible no longer turns text back into a list | Its first live run |
+| 19 | 8 | The IAM policy's comment described a sender restriction the statement did not have | Reading the SES permission before the first email |
+| 20 | 8 | SES had no VPC endpoint, so the first run summary email would have hung the application | Asking which endpoint boto3's SES client calls |
 
 ---
 
@@ -867,3 +869,101 @@ YAML and module names, not what an expression evaluates to - only a run does.
 
 **Why it was caught.** Running every playbook live, including the one nobody
 needed that day.
+
+---
+
+## 19. The IAM comment described a restriction the statement did not have
+
+**Phase 8.** Caught before the first email was sent.
+
+**Symptom, had it mattered.** None visible - which is what makes a wrong
+comment worse than no comment. The application's IAM policy carried this, over
+its SES statement:
+
+```hcl
+  # SES has no resource-level permission for sending, so this cannot be scoped
+  # to a bucket the way the others are. The condition narrows it instead: this
+  # role may send only from the project's verified address.
+  statement {
+    sid       = "SendRunSummaryEmail"
+    effect    = "Allow"
+    actions   = ["ses:SendEmail", "ses:SendRawEmail"]
+    resources = ["*"]
+  }
+```
+
+There was no condition. The role could send as any identity verified in the
+account - and this account has other projects in it. A reviewer reading the
+comment would have signed off on a restriction that did not exist.
+
+**What was actually wrong.** The comment was written for the statement as
+intended, and the statement was written as the simplest thing that worked. A
+comment is not compiled, validated, or planned; nothing connects it to the code
+below it except the next person who reads both.
+
+**Fix.** A `ses:FromAddress` condition pinned to the sender variable, and the
+comment rewritten to describe what the statement does:
+
+```hcl
+    condition {
+      test     = "StringEquals"
+      variable = "ses:FromAddress"
+      values   = [var.ses_sender]
+    }
+```
+
+**Generalises to.** When a comment claims a security property, check the code
+enforces it - and prefer claims the tooling can see. The condition shows up in
+`terraform plan` and in `aws iam get-policy-version`; the comment showed up
+nowhere.
+
+**Why it was caught.** Reading the permission line by line before the first
+live email, the same habit that caught issue 13.
+
+---
+
+## 20. SES had no VPC endpoint
+
+**Phase 8.** Caught before the first deploy.
+
+**Symptom, had it shipped.** The first file processed in qa would have been
+validated, executed, routed and reported - and then the application would have
+hung on the summary email. No error for minutes, the polling loop stopped
+behind it, and no further file picked up. The same shape as issue 17.
+
+**What was actually wrong.** The qa VPC has no internet route and reaches AWS
+only through interface endpoints. The endpoint list was built for what the
+cluster and the credential path need - ECR, STS, EC2, Secrets Manager, CloudWatch
+Logs - and SES, which only the application calls, was never on it. The smoke
+tests could not notice: they check the paths they know about.
+
+The fix was not obviously just "add one". SES's API endpoint service lists
+`email.us-east-1.api.aws` as its private DNS name, while boto3's SES client
+calls `email.us-east-1.amazonaws.com`. Had the endpoint answered only the first
+name, the client would still have resolved the second to a public address. It
+answers both:
+
+```bash
+aws ec2 describe-vpc-endpoint-services --service-names com.amazonaws.us-east-1.email \
+  --query 'ServiceDetails[0].PrivateDnsNames[].PrivateDnsName'
+# ["email.us-east-1.api.aws", "email.us-east-1.amazonaws.com"]
+```
+
+**Fix.**
+
+- `email` added to the endpoint list: $0.01/hr more, 12 billable resources in
+  qa instead of 11.
+- A thirteenth smoke check: the SES hostname boto3 uses resolves to a private
+  address and accepts a connection on 443.
+- The application's S3 and SES clients now connect with a five-second timeout
+  and bounded retries, so a missing endpoint is an error in the log within
+  seconds rather than a silent hang.
+
+**Generalises to.** In a VPC with no route out, the endpoint list is an
+inventory of every AWS API anything in it will ever call - including the ones
+called once per run, at the end, by one module. And check the hostname the
+client actually uses against the hostnames the endpoint answers; they are not
+always the same.
+
+**Why it was caught.** Asking, before the deploy, how the one AWS call not yet
+exercised would reach AWS.

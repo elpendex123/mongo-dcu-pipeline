@@ -60,7 +60,7 @@ docs/         architecture, runbooks, per-service notes
 
 ## Cost discipline
 
-The AWS footprint runs at roughly $0.57/hour fully up and is torn down after every session; qa and the data tier without a cluster are about $0.154/hour.
+The AWS footprint runs at roughly $0.59/hour fully up and is torn down after every session; qa on its own, with its cluster and the shared data tier, is about $0.31/hour.
 
 | Script | Does |
 |---|---|

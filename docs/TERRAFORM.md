@@ -297,14 +297,14 @@ Two details that produce an *active* peering connection and a hung connection:
 | Module | Produces | Worth knowing |
 |---|---|---|
 | `vpc/` | VPC, subnets across 2 AZs, route tables, optionally an IGW | Private by default. `create_public_subnets` is true only for the data tier |
-| `vpc-endpoints/` | S3 gateway endpoint plus six interface endpoints | Interface endpoints bill **per AZ**. Placed in one AZ deliberately: $0.06/hr instead of $0.12 |
+| `vpc-endpoints/` | S3 gateway endpoint plus seven interface endpoints | Interface endpoints bill **per AZ**. Placed in one AZ deliberately: $0.07/hr instead of $0.14 |
 | `documentdb/` | Cluster, one instance, subnet group, parameter group, security group | TLS enforced; the URI needs `replicaSet=rs0` and `retryWrites=false` |
 | `eks/` | Cluster, managed node group, launch template, add-ons, cluster and node roles, OIDC provider | Public API limited to your `/32`; metadata hop limit 1 so pods cannot use the node role; `STANDARD` upgrade policy. See [KUBERNETES.md](KUBERNETES.md) |
 | `rds/` | MySQL instance, subnet group, security group | Detects your public address at apply time for the admin rule |
 | `secrets-manager/` | One secret per entry, from a map | `recovery_window_days = 0`, or a destroyed environment leaves secrets billing and their names unusable |
 | `iam/` | The application policy, and the IRSA role when `create_role` is true | An explicit boolean, not inferred from the provider ARN, which is unknown at plan time on the apply that creates the cluster (issue 13) |
 
-### Why the endpoint list has six entries
+### Why the endpoint list has seven entries
 
 The original design named four: S3, ECR, Secrets Manager, CloudWatch. Building it
 produced two more:
@@ -314,6 +314,9 @@ produced two more:
   credentials at all.
 - **`ec2`** - the VPC CNI calls the EC2 API to attach addresses to pods. Added
   now rather than in Phase 7, so the cluster does not come up onto a wall.
+- **`email`** - SES, for the run summary email. Added in Phase 8 (issue 20).
+  Its private DNS answers both `email.us-east-1.amazonaws.com`, which boto3's
+  SES client calls, and `email.us-east-1.api.aws`.
 
 And `ecr.api` and `ecr.dkr` are two endpoints, not one: authentication and
 metadata go to one service, layer downloads to another. Layers themselves come

@@ -213,8 +213,12 @@ def configure_logging(
             )
 
     # boto3 at INFO narrates every HTTP call it makes, which would bury the
-    # pipeline's own narrative in the file Splunk reads.
-    for noisy in ("boto3", "botocore", "urllib3", "s3transfer"):
+    # pipeline's own narrative in the file Splunk reads. pymongo is on the list
+    # for the same reason at DEBUG: its structured driver logging - heartbeats,
+    # connection checkouts, server selection - was 57% of all lines in qa's
+    # first three minutes with LOG_LEVEL=DEBUG (issue 21). DEBUG is for the
+    # pipeline's own narrative, not for its libraries'.
+    for noisy in ("boto3", "botocore", "urllib3", "s3transfer", "pymongo"):
         logging.getLogger(noisy).setLevel(logging.WARNING)
 
 
