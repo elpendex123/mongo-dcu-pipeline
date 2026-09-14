@@ -86,6 +86,7 @@ would remove the only record that they exist.
 | [docs/KUBERNETES.md](docs/KUBERNETES.md) | The cluster with no internet route, its three identities, and pod security |
 | [docs/ANSIBLE.md](docs/ANSIBLE.md) | The playbooks between apply and deploy: the secrets bridge, schema, seeding, and smoke tests |
 | [docs/HELM.md](docs/HELM.md) | The application chart: layered values, the decisions in its templates, and the upgrade and rollback lifecycle |
+| [docs/runbooks/PROMOTE-TO-PROD.md](docs/runbooks/PROMOTE-TO-PROD.md) | Promoting a file from qa to prod, and what each refusal means |
 | [docs/validation/](docs/validation/README.md) | Step-by-step checks for each completed phase |
 | [docs/ISSUES.md](docs/ISSUES.md) | Problems hit while building, what caused them and how they were fixed |
 
@@ -120,5 +121,12 @@ success or failure bucket, reported on in both formats, recorded in the shared
 MySQL instance and summarised in an email - with a deliberately broken release
 rolled back to the last good one.
 
-Still to come: the QA to production promotion gate, observability, Splunk, and
-the Jenkins pipelines.
+And the promotion gate, run live across both environments at once: a qa run
+that succeeds completely issues a single-use token, and `scripts/promote.sh`
+copies the file to prod only for those exact bytes, once, within 24 hours - so
+a replayed token, a file with one changed byte and an expired token are each
+refused, by name, with nothing copied. Prod checks for itself as well, and
+refuses a file it has already run, or one put in its bucket without being
+promoted, before executing a single line.
+
+Still to come: observability, Splunk, and the Jenkins pipelines.

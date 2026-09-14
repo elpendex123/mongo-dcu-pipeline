@@ -189,7 +189,7 @@ environment's ARNs.
 |---|---|---|
 | `dev` | `true` | Created and destroyed constantly, holds only throwaway test files |
 | `qa` | `true` | Files are run here repeatedly and its buckets hold only test files and their reports - durable run history is in MySQL. A destroy that fails on leftover objects at the end of every session is a teardown that gets skipped |
-| `prod` | Decided in Phase 9 | The one environment where the files and reports are the record of what ran against production |
+| `prod` | `true` | A real production system would keep these `false`, with retention: the files and reports are the record of what ran against production. This prod is torn down every session along with the data tier holding its run history, and a destroy that failed on a non-empty bucket would be followed by `nuke.sh` deleting it anyway |
 
 ## The dev environment
 

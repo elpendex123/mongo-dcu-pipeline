@@ -56,13 +56,13 @@ flowchart LR
     subgraph qa["qa VPC 10.10.0.0/16"]
         QAPOD["app pod"]
     end
-    subgraph prod["prod VPC 10.20.0.0/16 - Phase 9"]
+    subgraph prod["prod VPC 10.20.0.0/16"]
         PPOD["app pod"]
     end
     JENKINS["Jenkins<br/>local machine"]
 
     QAPOD -->|"private, over peering"| RDS
-    PPOD -.->|"private, over peering"| RDS
+    PPOD -->|"private, over peering"| RDS
     JENKINS -->|"public endpoint, SG locked to one address"| RDS
 ```
 

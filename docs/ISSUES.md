@@ -30,6 +30,7 @@ same pattern applies to a different service.
 | 20 | 8 | SES had no VPC endpoint, so the first run summary email would have hung the application | Asking which endpoint boto3's SES client calls |
 | 21 | 8 | LOG_LEVEL=DEBUG turned on pymongo's driver logging: 57% of all lines | Reading the first pod's log before reading its results |
 | 22 | 8 | A sample's own comment said it was safe to rerun; its README, correctly, said it was not | Re-uploading it to prove the rollback |
+| 23 | 9 | Ansible refused to start when its output was captured by a background job | Its first run in the background, which printed one line and exited |
 
 ---
 
@@ -1073,3 +1074,44 @@ asked of the checks as well as the data.
 **Why it was caught.** Proving the rollback with a real file rather than a
 Ready pod, and reading the failed report instead of assuming the rollback had
 broken something.
+
+---
+
+## 23. Ansible refused to start in the background
+
+**Phase 9.** Configuring the prod cluster while the qa apply was still running.
+
+**Symptom.** The playbook exited 1 almost immediately, and its entire output was:
+
+```
+ERROR: Ansible requires blocking IO on stdin/stdout/stderr. Non-blocking file handles detected: <stdout>, <stderr>
+```
+
+No task ran. Nothing reached the cluster.
+
+**What was actually wrong.** The playbook was started as a background job whose
+output was captured by a pipe the job runner had set to non-blocking. A write to
+a non-blocking handle can fail with "try again" instead of waiting, and
+ansible-core checks for exactly this at startup rather than risk losing output
+halfway through a run - or, worse, a task's result. The same playbook had only
+ever run in a terminal or through `| tail`, both of which are blocking.
+
+**Fix.** Give Ansible handles of its own: a file for its output, and an empty
+stdin.
+
+```bash
+ansible-playbook playbooks/configure-cluster.yml -e target_env=prod < /dev/null > configure-prod.log 2>&1
+```
+
+Then read the log for `failed=` and the smoke test total, rather than the job's
+exit status alone. The two cluster configurations also ran one after the
+other, not in parallel, because both write `~/.kube/config`.
+
+**Generalises to.** A tool that checks its own I/O handles will behave
+differently under a job runner than in a terminal, for reasons that have nothing
+to do with the tool's work. The Jenkins jobs in Phase 12 run every playbook with
+captured output, so this is the form they will use.
+
+**Why it was caught.** The background job reported a failure within seconds,
+where the configuration normally takes five minutes - and a failure that fast
+is a failure to start, not a failure of the work.
