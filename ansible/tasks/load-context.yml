@@ -1,0 +1,69 @@
+# What a playbook needs to know about the environment and cannot know in
+# advance - read from Terraform outputs, the account and the registry, never
+# typed. Included at the top of every play that touches AWS or the cluster.
+#
+# Sets: tf_env, tf_data, aws_account_id, image_repository, image_ref_tag
+
+- name: Check target_env names an AWS environment
+  ansible.builtin.assert:
+    that: target_env in ['qa', 'prod']
+    fail_msg: >-
+      target_env must be qa or prod, got '{{ target_env }}'. dev runs on Docker
+      Compose and has no cluster.
+    quiet: true
+
+- name: Read the {{ target_env }} stack's Terraform outputs
+  ansible.builtin.command:
+    argv: [terraform, "-chdir={{ repo_root }}/terraform/environments/{{ target_env }}", output, -json]
+  register: tf_env_raw
+  changed_when: false
+
+- name: Read the data tier's Terraform outputs
+  ansible.builtin.command:
+    argv: [terraform, "-chdir={{ repo_root }}/terraform/environments/shared-data", output, -json]
+  register: tf_data_raw
+  changed_when: false
+
+- name: Check both stacks have been applied
+  ansible.builtin.assert:
+    that:
+      - tf_env_raw.stdout | from_json | length > 0
+      - tf_data_raw.stdout | from_json | length > 0
+    fail_msg: >-
+      A stack has no outputs. Apply terraform/environments/shared-data and then
+      terraform/environments/{{ target_env }} before running this playbook.
+    quiet: true
+
+# terraform output -json wraps every value as {sensitive, type, value}; only
+# the value is wanted.
+- name: Keep the outputs as facts
+  ansible.builtin.set_fact:
+    tf_env: "{{ dict(_env.keys() | zip(_env.values() | map(attribute='value'))) }}"
+    tf_data: "{{ dict(_data.keys() | zip(_data.values() | map(attribute='value'))) }}"
+  vars:
+    _env: "{{ tf_env_raw.stdout | from_json }}"
+    _data: "{{ tf_data_raw.stdout | from_json }}"
+
+- name: Identify the AWS account
+  amazon.aws.aws_caller_info:
+  register: caller
+
+- name: Look up the registry
+  ansible.builtin.command:
+    argv: [aws, ecr, describe-repositories, --repository-names, "{{ project }}-app", --region, "{{ aws_region }}", --output, json]
+  register: ecr_repository_raw
+  changed_when: false
+
+- name: List the pushed images
+  ansible.builtin.command:
+    argv: [aws, ecr, describe-images, --repository-name, "{{ project }}-app", --region, "{{ aws_region }}", --output, json]
+  register: ecr_images_raw
+  changed_when: false
+
+- name: Settle the account, the image and the tag
+  ansible.builtin.set_fact:
+    aws_account_id: "{{ caller.account }}"
+    image_repository: "{{ (ecr_repository_raw.stdout | from_json).repositories[0].repositoryUri }}"
+    image_ref_tag: "{{ image_tag if image_tag | length > 0 else _newest.imageTags | reject('equalto', 'latest') | first }}"
+  vars:
+    _newest: "{{ (ecr_images_raw.stdout | from_json).imageDetails | selectattr('imageTags', 'defined') | sort(attribute='imagePushedAt') | last }}"

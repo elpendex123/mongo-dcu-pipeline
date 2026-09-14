@@ -1,0 +1,77 @@
+# Drops the properties collection, recreates its indexes and reloads the 100
+# seed documents - the mongo-dcu-pipeline-11-documentdb-reset job.
+#
+# DocumentDB has no public endpoint, so this cannot run from here. It runs as a
+# Job inside the cluster, using the application image (which carries pymongo
+# and the TLS certificate bundle) with seed/seed.py and seed/properties.json
+# mounted from a ConfigMap - the in-cluster equivalent of the bind mount the
+# Compose seed service uses locally.
+#
+#   ansible-playbook playbooks/documentdb-reset.yml -e target_env=qa
+
+- name: DocumentDB reset
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    job_name: documentdb-reset
+    job_configmap: "{{ project }}-seed"
+
+  tasks:
+    - name: Load the environment context
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/load-context.yml"
+
+    - name: Measure the seed data
+      ansible.builtin.stat:
+        path: "{{ repo_root }}/seed/properties.json"
+      register: seed_file
+
+    # A ConfigMap cannot exceed 1 MiB. Checked rather than assumed, because the
+    # failure it produces otherwise names etcd, not the file.
+    - name: Check the seed data fits in a ConfigMap
+      ansible.builtin.assert:
+        that: seed_file.stat.size < 900000
+        fail_msg: "seed/properties.json is {{ seed_file.stat.size }} bytes; a ConfigMap holds at most 1 MiB"
+        quiet: true
+
+    - name: Publish the seeder and its data
+      kubernetes.core.k8s:
+        context: "{{ kube_context }}"
+        state: present
+        force: true
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: "{{ job_configmap }}"
+            namespace: "{{ app_namespace }}"
+            labels:
+              app.kubernetes.io/part-of: "{{ project }}"
+              app.kubernetes.io/managed-by: ansible
+          data:
+            seed.py: "{{ lookup('ansible.builtin.file', repo_root ~ '/seed/seed.py') | string }}"
+            properties.json: "{{ lookup('ansible.builtin.file', repo_root ~ '/seed/properties.json') | string }}"
+
+    - name: Run the reset
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/run-job.yml"
+      vars:
+        job_command: [python, /scripts/seed.py]
+        job_env:
+          - { name: MONGO_DATABASE, value: mongo_dcu }
+          - { name: MONGO_COLLECTION, value: properties }
+        job_env_from:
+          - secretRef:
+              name: "{{ k8s_secret_docdb }}"
+        job_timeout_seconds: 300
+
+    - name: Show the seeder's output
+      ansible.builtin.debug:
+        var: job_log_lines
+
+    - name: Check the reset succeeded
+      ansible.builtin.assert:
+        that: (job_status.succeeded | default(0)) > 0
+        fail_msg: >-
+          the reset Job failed.
+          {{ ('Pod never started: ' ~ (job_waiting_reasons | join(', '))) if job_waiting_reasons | length > 0 else 'See the log above.' }}
+        success_msg: "properties collection reset in {{ cluster_name }}"

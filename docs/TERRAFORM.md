@@ -40,13 +40,15 @@ terraform/
     dev/                     # S3 buckets only
     qa/                      # full stack
     prod/                    # same shape as qa, separate state
-    shared/                  # ECR repository and the analytics bucket
+    shared/                  # ECR repository and the analytics bucket, permanent
+    shared-data/             # data tier VPC and the shared RDS instance, session-scoped
 ```
 
 Each environment is a separate root module with its own state key, so `dev` can
 be created and destroyed without touching `qa`, and `qa` without touching
 `prod`. `shared/` holds what belongs to neither environment, so destroying an
-environment never takes the container registry with it.
+environment never takes the container registry with it. `shared-data/` holds the
+shared MySQL instance and its VPC - see [The data tier](#the-data-tier).
 
 ## State backend
 
@@ -54,7 +56,7 @@ environment never takes the container registry with it.
 |---|---|
 | Bucket | `mongo-dcu-pipeline-tfstate-950639281723` |
 | Region | `us-east-1` |
-| Keys | `dev/terraform.tfstate`, `qa/terraform.tfstate`, `prod/terraform.tfstate`, `shared/terraform.tfstate` |
+| Keys | `dev/terraform.tfstate`, `qa/terraform.tfstate`, `prod/terraform.tfstate`, `shared/terraform.tfstate`, `shared-data/terraform.tfstate` |
 | Encryption | SSE-S3 (AES256), bucket keys enabled |
 | Versioning | Enabled, superseded versions expire after 90 days |
 | Locking | S3 native (`use_lockfile = true`) |
@@ -297,13 +299,14 @@ Two details that produce an *active* peering connection and a hung connection:
 | `vpc/` | VPC, subnets across 2 AZs, route tables, optionally an IGW | Private by default. `create_public_subnets` is true only for the data tier |
 | `vpc-endpoints/` | S3 gateway endpoint plus six interface endpoints | Interface endpoints bill **per AZ**. Placed in one AZ deliberately: $0.06/hr instead of $0.12 |
 | `documentdb/` | Cluster, one instance, subnet group, parameter group, security group | TLS enforced; the URI needs `replicaSet=rs0` and `retryWrites=false` |
+| `eks/` | Cluster, managed node group, launch template, add-ons, cluster and node roles, OIDC provider | Public API limited to your `/32`; metadata hop limit 1 so pods cannot use the node role; `STANDARD` upgrade policy. See [KUBERNETES.md](KUBERNETES.md) |
 | `rds/` | MySQL instance, subnet group, security group | Detects your public address at apply time for the admin rule |
 | `secrets-manager/` | One secret per entry, from a map | `recovery_window_days = 0`, or a destroyed environment leaves secrets billing and their names unusable |
-| `iam/` | The application policy, and the IRSA role once a cluster exists | The role is skipped while `oidc_provider_arn` is empty - it cannot trust a provider that does not exist yet |
+| `iam/` | The application policy, and the IRSA role when `create_role` is true | An explicit boolean, not inferred from the provider ARN, which is unknown at plan time on the apply that creates the cluster (issue 13) |
 
 ### Why the endpoint list has six entries
 
-`CLAUDE.md` §9 named four: S3, ECR, Secrets Manager, CloudWatch. Building it
+The original design named four: S3, ECR, Secrets Manager, CloudWatch. Building it
 produced two more:
 
 - **`sts`** - IRSA obtains credentials by calling `AssumeRoleWithWebIdentity`.

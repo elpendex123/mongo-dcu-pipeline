@@ -1,0 +1,133 @@
+# Structured status - the Ansible counterpart to scripts/status.sh, for the
+# mongo-dcu-pipeline-08b-status-ansible job.
+#
+# status.sh is for a person reading a terminal. This produces one document -
+# printed, and written to ansible/generated/status.json - that another tool can
+# read without scraping text.
+#
+#   ansible-playbook playbooks/status.yml
+
+- name: Structured status
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    rates:
+      eks_cluster: 0.10
+      node_t3_small: 0.0208
+      docdb_t3_medium: 0.077
+      rds_t3_micro: 0.017
+      interface_endpoint_per_az: 0.01
+
+  tasks:
+    - name: Identify the AWS account
+      amazon.aws.aws_caller_info:
+      register: caller
+
+    - name: List EKS clusters
+      ansible.builtin.command:
+        argv: [aws, eks, list-clusters, --region, "{{ aws_region }}", --output, json]
+      register: eks_list
+      changed_when: false
+
+    - name: Describe each project cluster and its node groups
+      ansible.builtin.shell:
+        cmd: |
+          set -euo pipefail
+          c={{ item | quote }}
+          cluster=$(aws eks describe-cluster --name "$c" --region {{ aws_region }} --output json)
+          groups=$(aws eks list-nodegroups --cluster-name "$c" --region {{ aws_region }} --query nodegroups --output json)
+          nodegroups=$(for ng in $(echo "$groups" | jq -r '.[]'); do
+            aws eks describe-nodegroup --cluster-name "$c" --nodegroup-name "$ng" --region {{ aws_region }} --output json
+          done | jq -s '[.[].nodegroup]')
+          jq -n --argjson cluster "$cluster" --argjson nodegroups "$nodegroups" '{cluster: $cluster.cluster, nodegroups: $nodegroups}'
+        executable: /bin/bash
+      loop: "{{ (eks_list.stdout | from_json).clusters | select('match', project) | list }}"
+      register: eks_described
+      changed_when: false
+
+    - name: List RDS and DocumentDB instances
+      amazon.aws.rds_instance_info:
+        region: "{{ aws_region }}"
+      register: db_instances
+
+    - name: List VPC endpoints tagged for the project
+      amazon.aws.ec2_vpc_endpoint_info:
+        region: "{{ aws_region }}"
+        filters:
+          "tag:project": "{{ project }}"
+      register: endpoints
+
+    - name: List the project's S3 buckets
+      amazon.aws.s3_bucket_info:
+        name_filter: "{{ project }}"
+      register: buckets
+
+    - name: List the project's secrets
+      ansible.builtin.command:
+        argv: [aws, secretsmanager, list-secrets, --region, "{{ aws_region }}", --filters, "Key=name,Values={{ project }}", --query, "SecretList[].Name", --output, json]
+      register: secrets
+      changed_when: false
+
+    # Built as data, one cluster at a time. An earlier version assembled a
+    # JSON-shaped string in a Jinja loop and relied on Ansible turning it back
+    # into a list; since ansible-core 2.19 a template that renders a string
+    # stays a string (issue 18).
+    - name: Summarise each cluster
+      ansible.builtin.set_fact:
+        eks_summary: >-
+          {{ eks_summary | default([]) + [{
+               'name': item.cluster.name,
+               'status': item.cluster.status,
+               'version': item.cluster.version,
+               'public_access_cidrs': item.cluster.resourcesVpcConfig.publicAccessCidrs,
+               'nodes': item.nodegroups | map(attribute='scalingConfig.desiredSize') | sum,
+               'nodegroups': item.nodegroups | map(attribute='status') | list }] }}
+      loop: "{{ eks_described.results | map(attribute='stdout') | map('from_json') | list }}"
+      loop_control:
+        label: "{{ item.cluster.name }}"
+
+    - name: Assemble the report
+      ansible.builtin.set_fact:
+        status_report:
+          generated_at: "{{ now(utc=true, fmt='%Y-%m-%dT%H:%M:%SZ') }}"
+          account: "{{ caller.account }}"
+          region: "{{ aws_region }}"
+          eks: "{{ _eks }}"
+          documentdb_instances: "{{ _docdb }}"
+          rds_instances: "{{ _rds }}"
+          interface_endpoints: "{{ _interface | length }}"
+          interface_endpoint_azs: "{{ _interface_azs }}"
+          s3_buckets: "{{ buckets.buckets | map(attribute='name') | sort }}"
+          secrets: "{{ secrets.stdout | from_json | sort }}"
+          billable_resources: "{{ (_eks | length) + _nodes + (_docdb | length) + (_rds | length) + (_interface | length) }}"
+          approx_usd_per_hour: >-
+            {{ ((_eks | length) * rates.eks_cluster
+               + _nodes * rates.node_t3_small
+               + (_docdb | length) * rates.docdb_t3_medium
+               + (_rds | length) * rates.rds_t3_micro
+               + _interface_azs * rates.interface_endpoint_per_az) | round(3) }}
+      vars:
+        _eks: "{{ eks_summary | default([]) }}"
+        _nodes: "{{ _eks | map(attribute='nodes') | sum }}"
+        _project_instances: "{{ db_instances.instances | selectattr('db_instance_identifier', 'match', project) | list }}"
+        _docdb: "{{ _project_instances | selectattr('engine', 'eq', 'docdb') | map(attribute='db_instance_identifier') | list }}"
+        _rds: "{{ _project_instances | rejectattr('engine', 'eq', 'docdb') | map(attribute='db_instance_identifier') | list }}"
+        _interface: "{{ endpoints.vpc_endpoints | selectattr('vpc_endpoint_type', 'eq', 'Interface') | selectattr('state', 'ne', 'deleted') | list }}"
+        _interface_azs: "{{ _interface | map(attribute='subnet_ids') | map('length') | sum }}"
+
+    - name: Print the report
+      ansible.builtin.debug:
+        var: status_report
+
+    - name: Make the output directory
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/../generated"
+        state: directory
+        mode: "0755"
+
+    - name: Write the report
+      ansible.builtin.copy:
+        content: "{{ status_report | to_nice_json }}\n"
+        dest: "{{ playbook_dir }}/../generated/status.json"
+        mode: "0644"

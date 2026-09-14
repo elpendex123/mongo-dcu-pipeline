@@ -32,6 +32,9 @@ kubeconfig*
 
 # Ansible
 *.retry
+# Rendered per session from Terraform outputs - endpoints and ARNs change on
+# every apply, so a committed copy would always be stale.
+ansible/generated/
 
 # Runtime output
 logs/

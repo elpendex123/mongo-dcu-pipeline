@@ -1,0 +1,18 @@
+# The chart repositories Phase 10 installs from.
+#
+#   ansible-playbook playbooks/helm-repos.yml
+
+- name: Helm repositories
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Add each repository and refresh its index
+      kubernetes.core.helm_repository:
+        name: "{{ item.name }}"
+        repo_url: "{{ item.url }}"
+        state: present
+        force_update: true
+      loop: "{{ helm_repositories }}"
+      loop_control:
+        label: "{{ item.name }}"

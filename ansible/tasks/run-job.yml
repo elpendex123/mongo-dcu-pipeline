@@ -1,0 +1,125 @@
+# Runs one Kubernetes Job to completion in the application namespace, from the
+# application image, and hands back its log.
+#
+# Expects: job_name, job_configmap (mounted read-only at /scripts), job_command
+# Optional: job_env, job_env_from, job_service_account, job_timeout_seconds
+# Sets:     job_status (the Job's .status), job_log_lines
+#
+# Every Job meets the restricted Pod Security Standard the application
+# namespace enforces - which is also the standard the Helm chart has to meet in
+# Phase 8, so a Job that is admitted here is evidence the chart will be too.
+
+- name: Remove any earlier {{ job_name }} Job
+  kubernetes.core.k8s:
+    context: "{{ kube_context }}"
+    api_version: batch/v1
+    kind: Job
+    name: "{{ job_name }}"
+    namespace: "{{ app_namespace }}"
+    state: absent
+    wait: true
+    delete_options:
+      propagationPolicy: Foreground
+
+- name: Start the {{ job_name }} Job
+  kubernetes.core.k8s:
+    context: "{{ kube_context }}"
+    state: present
+    definition:
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: "{{ job_name }}"
+        namespace: "{{ app_namespace }}"
+        labels:
+          app.kubernetes.io/part-of: "{{ project }}"
+          app.kubernetes.io/managed-by: ansible
+      spec:
+        backoffLimit: 0
+        activeDeadlineSeconds: "{{ job_timeout_seconds | default(300) | int }}"
+        ttlSecondsAfterFinished: 3600
+        template:
+          metadata:
+            labels:
+              app.kubernetes.io/part-of: "{{ project }}"
+          spec:
+            restartPolicy: Never
+            serviceAccountName: "{{ job_service_account | default('default') }}"
+            # No Kubernetes API access is needed. An IRSA token, when the
+            # service account has a role, is projected separately and is
+            # unaffected by this.
+            automountServiceAccountToken: false
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: "{{ app_uid | int }}"
+              runAsGroup: "{{ app_uid | int }}"
+              seccompProfile:
+                type: RuntimeDefault
+            containers:
+              - name: job
+                image: "{{ image_repository }}:{{ image_ref_tag }}"
+                command: "{{ job_command }}"
+                env: "{{ job_env | default([]) }}"
+                envFrom: "{{ job_env_from | default([]) }}"
+                volumeMounts:
+                  - name: scripts
+                    mountPath: /scripts
+                    readOnly: true
+                resources:
+                  requests:
+                    cpu: 50m
+                    memory: 128Mi
+                  limits:
+                    memory: 256Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop: [ALL]
+            volumes:
+              - name: scripts
+                configMap:
+                  name: "{{ job_configmap }}"
+
+- name: Wait for {{ job_name }} to succeed or fail
+  kubernetes.core.k8s_info:
+    context: "{{ kube_context }}"
+    api_version: batch/v1
+    kind: Job
+    name: "{{ job_name }}"
+    namespace: "{{ app_namespace }}"
+  register: job_info
+  until: >-
+    job_info.resources | length > 0 and
+    ((job_info.resources[0].status.succeeded | default(0)) > 0 or
+     (job_info.resources[0].status.failed | default(0)) > 0)
+  retries: "{{ ((job_timeout_seconds | default(300) | int) / 10) | int + 6 }}"
+  delay: 10
+
+- name: Find the {{ job_name }} pod
+  kubernetes.core.k8s_info:
+    context: "{{ kube_context }}"
+    kind: Pod
+    namespace: "{{ app_namespace }}"
+    label_selectors:
+      - "job-name={{ job_name }}"
+  register: job_pods
+
+- name: Collect the {{ job_name }} log
+  kubernetes.core.k8s_log:
+    context: "{{ kube_context }}"
+    namespace: "{{ app_namespace }}"
+    name: "{{ job_pods.resources[0].metadata.name }}"
+  register: job_log
+  failed_when: false
+  when: job_pods.resources | length > 0
+
+- name: Keep the result
+  ansible.builtin.set_fact:
+    job_status: "{{ job_info.resources[0].status }}"
+    job_log_lines: "{{ job_log.log_lines | default([]) }}"
+    # A pod that never started - an image it could not pull, a Secret that
+    # does not exist - has no log. Its waiting reason is the only explanation.
+    job_waiting_reasons: >-
+      {{ job_pods.resources | map(attribute='status.containerStatuses') | select('defined') | flatten
+         | map(attribute='state.waiting.reason') | select('defined') | list }}

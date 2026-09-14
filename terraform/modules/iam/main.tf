@@ -5,17 +5,21 @@
 # permissions to the node's instance role instead would hand them to every pod
 # that happens to land on that node, including anything in kube-system.
 #
-# The role is created only once the cluster's OIDC provider exists, which
-# happens with the cluster in Phase 7. Until then this module produces the
-# policy alone - the permissions are reviewable and version-controlled before
-# there is anything to attach them to.
+# The role is created only when create_role is true, which the calling stack
+# sets once it also creates a cluster. Without one the module produces the
+# policy alone - reviewable and version-controlled before there is anything to
+# attach it to.
 
 data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 locals {
-  name        = "${var.project}-${var.environment}-app"
-  create_role = var.oidc_provider_arn != "" && var.oidc_provider_url != ""
+  name = "${var.project}-${var.environment}-app"
+  # Not inferred from oidc_provider_arn being non-empty. On the apply that
+  # creates the cluster, that ARN is unknown at plan time, and a count that
+  # depends on an unknown value is a plan-time error - the inference only ever
+  # worked while the ARN was a literal empty string.
+  create_role = var.create_role
 }
 
 data "aws_iam_policy_document" "app" {
@@ -118,6 +122,15 @@ resource "aws_iam_role" "app" {
   assume_role_policy = data.aws_iam_policy_document.trust[0].json
 
   tags = { Name = local.name }
+
+  # Checked at apply, once the provider values are known. A role whose trust
+  # policy names an empty provider would be created and trust nothing.
+  lifecycle {
+    precondition {
+      condition     = var.oidc_provider_arn != "" && var.oidc_provider_url != ""
+      error_message = "create_role is true but oidc_provider_arn or oidc_provider_url is empty."
+    }
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "app" {

@@ -18,14 +18,20 @@ variable "secret_name_prefixes" {
   type        = list(string)
 }
 
+variable "create_role" {
+  description = "Whether to create the IRSA role. An explicit boolean because Terraform must know how many roles to create at plan time, and on the apply that creates the cluster the provider ARN is not known yet."
+  type        = bool
+  default     = false
+}
+
 variable "oidc_provider_arn" {
-  description = "ARN of the cluster's IAM OIDC provider. Empty until the cluster exists: the provider is created with the EKS cluster in Phase 7, and a role cannot trust a provider that is not there yet. While empty, the policy is created and the role is not."
+  description = "ARN of the cluster's IAM OIDC provider, which the role's trust policy names. Required when create_role is true."
   type        = string
   default     = ""
 }
 
 variable "oidc_provider_url" {
-  description = "The cluster's OIDC issuer URL without its https:// prefix. Empty until the cluster exists."
+  description = "The cluster's OIDC issuer URL without its https:// prefix. Required when create_role is true."
   type        = string
   default     = ""
 }

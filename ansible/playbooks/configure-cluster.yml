@@ -1,0 +1,36 @@
+# Everything between "terraform apply finished" and "ready for helm install" -
+# the mongo-dcu-pipeline-02-configure-cluster job.
+#
+# Each playbook also runs on its own; this is the order they depend on.
+# Smoke tests come after the schema and before any deploy, so a network or
+# security group mistake fails here, with a message that names it, rather than
+# as a crashlooping pod in Phase 8.
+#
+#   cd ansible && ansible-playbook playbooks/configure-cluster.yml -e target_env=qa
+
+- name: Prerequisites
+  ansible.builtin.import_playbook: prereqs.yml
+
+- name: Kubeconfig
+  ansible.builtin.import_playbook: kubeconfig.yml
+
+- name: Namespaces
+  ansible.builtin.import_playbook: namespaces.yml
+
+- name: Service account
+  ansible.builtin.import_playbook: service-account.yml
+
+- name: Secrets bridge
+  ansible.builtin.import_playbook: secrets-bridge.yml
+
+- name: Helm repositories
+  ansible.builtin.import_playbook: helm-repos.yml
+
+- name: RDS schema
+  ansible.builtin.import_playbook: rds-schema.yml
+
+- name: Smoke tests
+  ansible.builtin.import_playbook: smoke-tests.yml
+
+- name: Render Helm values
+  ansible.builtin.import_playbook: render-values.yml

@@ -1,0 +1,50 @@
+# The application namespace and the monitoring namespace.
+#
+# Not a prod namespace in the qa cluster, as the original design listed: each
+# environment has its own cluster, so a prod namespace inside qa's would be an
+# empty room nothing is ever meant to enter.
+#
+#   ansible-playbook playbooks/namespaces.yml -e target_env=qa
+
+- name: Namespaces
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Load the environment context
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/load-context.yml"
+
+    - name: Create the application namespace
+      kubernetes.core.k8s:
+        context: "{{ kube_context }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ app_namespace }}"
+            labels:
+              app.kubernetes.io/part-of: "{{ project }}"
+              environment: "{{ target_env }}"
+              # The strictest Pod Security Standard, enforced at admission: no
+              # root, no privilege escalation, no host access, every capability
+              # dropped. The application needs none of those, so any pod
+              # that asks for one is refused before it is scheduled.
+              pod-security.kubernetes.io/enforce: restricted
+              pod-security.kubernetes.io/enforce-version: latest
+
+    # Deliberately without the restricted label. node-exporter, which arrives
+    # with kube-prometheus-stack in Phase 10, reads the host's /proc and /sys
+    # and runs on the host network - it would be refused.
+    - name: Create the monitoring namespace
+      kubernetes.core.k8s:
+        context: "{{ kube_context }}"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ monitoring_namespace }}"
+            labels:
+              app.kubernetes.io/part-of: "{{ project }}"
+              environment: "{{ target_env }}"

@@ -19,6 +19,13 @@ same pattern applies to a different service.
 | 9 | 6 | The destructive script could only be understood by running it | Running it, carelessly, to read its output |
 | 10 | 6 | DocumentDB and RDS share one API, and each reported the other's instances | Reading the first live status report |
 | 11 | 6 | The tag query reported resources that had already been deleted | Verifying the first full teardown |
+| 12 | 7 | The image in the registry predated the certificate bundle DocumentDB requires | Comparing the image's push time with the Dockerfile's history |
+| 13 | 7 | The IRSA role's count depended on a value unknown until apply | Reading the wiring before the first plan |
+| 14 | 7 | `nuke.sh` stopped before the leftovers that block the next apply | Extending it for EKS |
+| 15 | 7 | The Terraform output meant for the app's config used a variable name the app never reads | Checking the output against `app/config.py` |
+| 16 | 7 | The smoke tests passed a run that stopped after 7 of 12 checks | Counting the PASS lines against the checks the script runs |
+| 17 | 7 | IRSA credentials hung: botocore called the global STS endpoint | A debug pod printing the URL of every STS request |
+| 18 | 7 | The status playbook built a list as text, and Ansible no longer turns text back into a list | Its first live run |
 
 ---
 
@@ -541,7 +548,7 @@ What changed is that the distinction is now explicit and written down:
 - the Phase 6 validation guide had told the reader to confirm teardown with
   the tag query, which was exactly backwards. It now says not to, and gives
   the four per-service counts to use instead
-- `CLAUDE.md` §9 carries the caveat, because the design says tag-based
+- the architecture notes carry the caveat, because the design says tag-based
   discovery is "what makes the status/nuke scripts reliable" and that sentence
   needed the other half
 
@@ -553,3 +560,310 @@ resource - and the wording matters, because "the query returned nothing" and
 **Why it was caught.** By not believing a clean report. The teardown said zero,
 and the check ran anyway - and when the two disagreed, the answer was not to
 pick the one that was more convenient.
+
+---
+
+## 12. The image in the registry predated the certificate bundle
+
+**Phase 7.** Found before anything ran against it.
+
+**Symptom.** None yet - which was the problem. The only image in ECR was tagged
+`142a514`, pushed on 2026-09-11. The Dockerfile change that downloads the RDS
+certificate bundle to `/etc/ssl/certs/global-bundle.pem` was committed the next
+day, in `2f5ed73`, and never pushed. The DocumentDB connection string in Secrets
+Manager names that file in `tlsCAFile`. Every pod started from the registry's
+image would have failed its first DocumentDB connection with a missing-file
+error from inside the TLS setup, which reads like a certificate problem rather
+than a stale image.
+
+**What was actually wrong.** A registry holds what was pushed, not what was
+committed. Nothing links the two: `git log` said the bundle was there, the
+Dockerfile said the bundle was there, and the image that would actually run did
+not have it.
+
+**Fix.** Rebuilt and pushed as `2f5ed73`. The working tree had uncommitted
+documentation changes, which would have earned the build a `-dirty` suffix, so
+the tag was passed explicitly - but only after proving the image's inputs were
+byte-identical to that commit:
+
+```bash
+git diff --quiet 2f5ed73 -- app Dockerfile requirements.txt && echo "image inputs match 2f5ed73"
+./scripts/build-push.sh --tag 2f5ed73
+```
+
+**Generalises to.** A change to anything baked into an image is not finished at
+commit. Compare what is deployed with what is committed - by digest or by tag -
+before debugging the thing the image does. The Jenkins build job in Phase 12
+closes this for good.
+
+**Why it was caught.** Checking the registry's push dates against
+`git log -- Dockerfile` before writing the first Job that would run the image.
+
+---
+
+## 13. The IRSA role's count depended on a value unknown until apply
+
+**Phase 7.** Caught while wiring the module, before the first plan.
+
+**Symptom, had it run.** The first `terraform plan` of qa with a cluster would
+have stopped with:
+
+```
+Error: Invalid count argument
+
+The "count" value depends on resource attributes that cannot be determined
+until apply, so Terraform cannot predict how many instances will be created.
+```
+
+**What was actually wrong.** `modules/iam` decided whether to create the role
+by testing `var.oidc_provider_arn != ""`. In Phase 6 that ARN was a literal
+empty string, known at plan time, so the test worked - that was the only path
+ever exercised. Once the ARN comes from `module.eks`, on the apply that creates
+the cluster, it is unknown until the provider exists, and Terraform has to know
+how many roles to create before it creates anything.
+
+**Fix.** An explicit `create_role` boolean, set to `true` by the qa stack, plus
+a `precondition` on the role that checks, at apply time, that the provider
+values actually arrived. The decision is now a literal; the check that the
+inputs are sane still happens, once they are known.
+
+**Generalises to.** `count` and `for_each` must be computable from
+configuration alone. "Create this if that resource's attribute is set" works
+while the attribute is a constant and breaks the day it becomes a reference. A
+code path that has only ever run with an empty input has not been tested.
+
+**Why it was caught.** Issue list item 1 in the Phase 6 handover was "the IRSA
+role path has never executed" - so the path was read line by line before being
+run, rather than trusted.
+
+---
+
+## 14. `nuke.sh` stopped before the leftovers that block the next apply
+
+**Phase 7.** Found extending the script for EKS.
+
+**Symptom, had it happened.** After a failed `terraform destroy` that left
+only an IAM role behind, `nuke.sh` would report:
+
+```
+  ok nothing to delete - no unprotected project resources exist
+```
+
+and exit. The next `terraform apply` would then fail with
+`EntityAlreadyExists: Role with name mongo-dcu-pipeline-qa-app already exists`.
+
+**What was actually wrong.** The "is there anything to do?" count only
+included resources that bill: clusters, databases, VPCs, secrets, buckets. The
+IAM section ran after that early exit, so when IAM was all that remained it
+never ran. Free resources are exactly the ones that survive a teardown
+unnoticed, and a role, an OIDC provider or a launch template left behind holds
+the name the next apply needs.
+
+A second problem was waiting behind the first: EKS puts the node role in an
+instance profile of its own. `delete-role` refuses while a role is in any
+instance profile, however thoroughly its policies are detached.
+
+**Fix.** IAM roles, IAM policies, OIDC providers and launch templates are now
+discovered with everything else, shown in the dry run, and counted. Roles are
+removed from their instance profiles before deletion. `status.sh` gained a
+section listing the same four kinds, labelled as free.
+
+**Generalises to.** A cleanup tool's definition of "something left" has to
+match the failure it exists for. For a cost guard that is anything billing; for
+a teardown that has to leave the account re-appliable, it is anything with a
+name.
+
+**Why it was caught.** Adding the OIDC provider to the IAM section meant
+reading the section, and the early exit above it.
+
+---
+
+## 15. The config output used a variable name the app never reads
+
+**Phase 7.** Found wiring the Helm values template to Terraform outputs.
+
+**Symptom, had it shipped.** None visible, which is what makes it bad. The qa
+stack's `app_config` output set `ENVIRONMENT = "qa"`. `app/config.py` reads
+`APP_ENV`, and defaults it to `dev`. A chart built from that output would have
+started cleanly in qa and labelled itself `dev`: every log line tagged
+`env=dev`, every row in the shared `runs` table recorded as `dev`, and - since
+promotion tokens are only issued for qa runs - no token for any file, ever. The
+config validator would have passed, because `dev` is a valid value.
+
+**What was actually wrong.** The output was written in Phase 6 as a list of
+what the application would need, before anything consumed it, and it was
+never compared with the code that reads it. It also carried three
+`*_SECRET_NAME` entries the application does not read at all; credentials
+reach the pod through Kubernetes Secrets.
+
+**Fix.** Keyed exactly as `app/config.py` reads the environment: `APP_ENV`, the
+five `S3_*` bucket names, `AWS_REGION`, `POLL_INTERVAL_SECONDS`. The secret
+names moved to their own outputs, where the Ansible bridge reads them.
+
+**Generalises to.** An interface with a default is an interface that fails
+silently. A value meant for another component should be checked against the
+code that consumes it, not against a description of what that code needs.
+
+**Why it was caught.** Rendering the values template meant reading the output
+key by key next to `config.py`.
+
+---
+
+## 16. The smoke tests passed a run that stopped after 7 of 12 checks
+
+**Phase 7.** The first live run of `configure-cluster.yml`.
+
+**Symptom.** The playbook finished `failed=0`, and the smoke test task said:
+
+```
+TASK [Check every in-cluster check passed]
+    msg: all 7 in-cluster checks passed
+```
+
+The script runs twelve checks. The five that did not report were exactly the
+ones the phase most needed to prove: the IRSA identity, S3 in both directions,
+Secrets Manager, and the node credential lockout.
+
+**What was actually wrong.** Two things, stacked:
+
+1. Check 8 hung (issue 17). The Job ran into its 180-second
+   `activeDeadlineSeconds`, Kubernetes killed the pod - and deleted it, so its
+   log went too. The playbook had already collected the seven lines printed
+   before the hang.
+2. The assertion was "every line that was reported passed". Seven lines, seven
+   passes, assertion true. It never asked whether the script finished, whether
+   the Job succeeded, or whether all twelve checks were there. The script even
+   printed a summary line at the end for exactly this purpose, and nothing
+   required it.
+
+**Fix.**
+
+- The assertion now requires four things: the summary line, exactly twelve
+  results, no failures, and a succeeded Job. When the summary is missing the
+  failure message says how many checks reported and which one it stopped on.
+- Every check is cut off after 15 seconds with `SIGALRM`, so a hang becomes a
+  `FAIL` with a reason instead of silence, and the script always reaches its
+  summary line.
+- The Job's deadline rose to 240 seconds - longer than twelve checks at their
+  cap - so the pod is never killed mid-run and its log survives.
+
+**Generalises to.** An absence of failures is not a presence of passes. A test
+harness has to know how many results to expect and treat a missing one as a
+failure, and a process killed from outside has to be distinguishable from one
+that finished. "All N passed" is only reassuring when N is checked.
+
+**Why it was caught.** Reading the result count instead of the word "passed".
+Seven is not twelve.
+
+---
+
+## 17. IRSA credentials hung: botocore called the global STS endpoint
+
+**Phase 7.** Behind issue 16 - the check that hung.
+
+**Symptom.** In the smoke test pod, the first check that needed AWS
+credentials never returned. No error, no timeout message - the Job reached its
+deadline and was killed. Everything before it passed, including DocumentDB
+and MySQL.
+
+**Investigation.** A debug pod under the same service account and image, with
+short timeouts and botocore's request URLs printed (URLs only - the request
+body carries the service account token):
+
+```
+--- AWS env injected into the pod
+  AWS_REGION=us-east-1
+  AWS_ROLE_ARN=arn:aws:iam::950639281723:role/mongo-dcu-pipeline-qa-app
+  AWS_STS_REGIONAL_ENDPOINTS=regional
+  AWS_WEB_IDENTITY_TOKEN_FILE=/var/run/secrets/eks.amazonaws.com/serviceaccount/token
+--- DNS and TCP 443
+  sts.us-east-1.amazonaws.com: ['10.10.5.148'] tcp ok 2ms
+  sts.amazonaws.com: ['52.94.230.12'] tcp FAIL TimeoutError 4004ms
+--- botocore 1.43.93
+  sts_regional_endpoints = regional
+  request AssumeRoleWithWebIdentity -> https://sts.amazonaws.com/
+```
+
+Everything the design depends on was correct: the webhook injected the role
+and the token, the `sts` interface endpoint answered on a private address, and
+the regional-endpoints setting was on. botocore called the **global** endpoint
+anyway - a public address, in a VPC with no internet route.
+
+Forcing the endpoint with `AWS_ENDPOINT_URL_STS` moved the request to the
+regional name and failed differently, which gave the cause away:
+
+```
+  request AssumeRoleWithWebIdentity -> https://sts.us-east-1.amazonaws.com/
+  get_caller_identity FAIL: NoRegionError You must specify a region.
+```
+
+**What was actually wrong.** botocore reads its default region from
+`AWS_DEFAULT_REGION`. `AWS_REGION` - the name the pod had, the name
+`app/config.py` reads, and the name most other AWS SDKs use - means nothing
+to it. With no region, "regional" has nothing to be regional in, and the STS
+client falls back to the global endpoint.
+
+The application itself would have hit this. It passes `region_name` to its S3
+and SES clients explicitly, but the credential provider that exchanges the IRSA
+token for credentials builds its **own** STS client, from the default region.
+The pod would have started, logged its configuration, and hung on its first
+poll of the input bucket.
+
+With `AWS_DEFAULT_REGION=us-east-1` and no endpoint override:
+
+```
+  request AssumeRoleWithWebIdentity -> https://sts.us-east-1.amazonaws.com/
+  caller: arn:aws:sts::950639281723:assumed-role/mongo-dcu-pipeline-qa-app/botocore-session-...
+  took 159ms
+```
+
+**Fix.** `AWS_DEFAULT_REGION` added to the qa stack's `app_config` output, so
+the Helm values carry it to the application, and to the smoke test Job's
+environment. The service account's `sts-regional-endpoints` annotation stays,
+with a comment saying it is half the fix, not the whole of it.
+
+**Generalises to.** In a VPC with no internet route, every default that points
+at a global or public endpoint is a hang waiting to happen - and a hang is
+worse than an error, because nothing reports it. When a network path fails,
+print the URL the client actually called before theorising about the network:
+here the network was right and the URL was wrong.
+
+**Why it was caught.** By issue 16's fix-in-waiting: the missing five checks
+were counted, and the hung one was reproduced in isolation with a timeout
+short enough to see the request.
+
+---
+
+## 18. The status playbook built a list as text
+
+**Phase 7.** The first live run of `ansible/playbooks/status.yml`.
+
+**Symptom.**
+
+```
+Error while resolving value for 'status_report': object of type 'str' has
+no attribute 'nodes'
+```
+
+**What was actually wrong.** The per-cluster summary was assembled by a Jinja
+`for` loop that printed JSON - `[{"name": "...", "nodes": 2, ...}]` - and the
+next expression treated the result as a list. Older Ansible quietly parsed a
+rendered string that looked like a list or a dict back into one. ansible-core
+2.19 reworked templating: a template that renders text produces text, so the
+"list" was a string, and asking a string for `.nodes` fails.
+
+The syntax check passed, and so did every other playbook, because the rest
+build values from filters (`map`, `selectattr`, `combine`) that return real
+lists and dicts and never go through text.
+
+**Fix.** One `set_fact` per cluster, appending a dict literal to a list -
+data built as data, with no rendering step in between. The report now matches
+`status.sh` exactly: 11 billable, $0.296/hr.
+
+**Generalises to.** Never build structured data by printing it. A template that
+emits JSON for something else to parse relies on that something else guessing
+the type, and version upgrades change guesses. `--syntax-check` validates
+YAML and module names, not what an expression evaluates to - only a run does.
+
+**Why it was caught.** Running every playbook live, including the one nobody
+needed that day.

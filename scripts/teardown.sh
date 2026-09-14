@@ -61,6 +61,20 @@ for stack in "${STACKS[@]}"; do
   fi
 done
 
+# Kubeconfig entries for clusters that no longer exist. kubectl pointed at one
+# fails with a DNS error that reads like a network fault, and the next
+# update-kubeconfig adds a second entry beside the dead one.
+if command -v kubectl >/dev/null 2>&1; then
+  for ctx in $(kubectl config get-contexts -o name 2>/dev/null | grep "^$PROJECT-" || true); do
+    aws eks describe-cluster --name "$ctx" --region "$AWS_REGION" >/dev/null 2>&1 && continue
+    ctx_cluster=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$ctx\")].context.cluster}")
+    ctx_user=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$ctx\")].context.user}")
+    kubectl config delete-context "$ctx" >/dev/null 2>&1 && ok "removed kubeconfig context $ctx"
+    [[ -n "$ctx_cluster" ]] && kubectl config delete-cluster "$ctx_cluster" >/dev/null 2>&1 || true
+    [[ -n "$ctx_user" ]] && kubectl config unset "users.$ctx_user" >/dev/null 2>&1 || true
+  done
+fi
+
 head1 "3/5  status after destroy"
 "$REPO_ROOT/scripts/status.sh" | sed -n '/^cost/,$p'
 

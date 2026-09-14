@@ -78,20 +78,59 @@ clusters=$(aws eks list-clusters --region "$AWS_REGION" --query 'clusters' --out
 if [[ -z "$clusters" ]]; then
   echo "  ${C_DIM}no clusters${C_RESET}"
 else
+  # Compared against each cluster's public API allowlist. A home address
+  # changes, and when it does kubectl, Helm and Ansible all time out with
+  # nothing in their errors that says why.
+  my_ip="$(curl -s --max-time 5 https://checkip.amazonaws.com 2>/dev/null | tr -d '[:space:]' || true)"
+
   while read -r c; do
     [[ -z "$c" ]] && continue
-    st=$(aws eks describe-cluster --name "$c" --region "$AWS_REGION" --query 'cluster.status' --output text)
-    ver=$(aws eks describe-cluster --name "$c" --region "$AWS_REGION" --query 'cluster.version' --output text)
+    read -r st ver cidrs < <(aws eks describe-cluster --name "$c" --region "$AWS_REGION" --output json \
+      | jq -r '[.cluster.status, .cluster.version, ((.cluster.resourcesVpcConfig.publicAccessCidrs // []) | join(","))] | @tsv')
     printf '  %-32s %-10s k8s %s   %s$%s/hr%s\n' "$c" "$st" "$ver" "$C_RED" "$RATE_EKS_CLUSTER" "$C_RESET"
     add_cost "$RATE_EKS_CLUSTER"; BILLABLE=$((BILLABLE + 1))
 
-    for ng in $(aws eks list-nodegroups --cluster-name "$c" --region "$AWS_REGION" --query 'nodegroups' --output text 2>/dev/null); do
-      read -r size itype < <(aws eks describe-nodegroup --cluster-name "$c" --nodegroup-name "$ng" \
-        --region "$AWS_REGION" --query '[nodegroup.scalingConfig.desiredSize, nodegroup.instanceTypes[0]]' --output text)
-      printf '    node group %-20s %s x %s\n' "$ng" "$size" "$itype"
-      [[ "$itype" == "t3.small" ]] && add_cost "$RATE_NODE_T3_SMALL" "$size"
-      BILLABLE=$((BILLABLE + 1))
+    printf '    API public access  %s\n' "${cidrs:--}"
+    if [[ -n "$my_ip" && ",$cidrs," != *",$my_ip/32,"* && ",$cidrs," != *",0.0.0.0/0,"* ]]; then
+      warn "$c admits $cidrs but this machine is now $my_ip - kubectl will time out until the stack is reapplied"
+    fi
+
+    for a in $(aws eks list-addons --cluster-name "$c" --region "$AWS_REGION" --query 'addons' --output text 2>/dev/null); do
+      read -r av ast < <(aws eks describe-addon --cluster-name "$c" --addon-name "$a" --region "$AWS_REGION" \
+        --query '[addon.addonVersion, addon.status]' --output text)
+      printf '    add-on %-20s %-24s %s\n' "$a" "$av" "$ast"
     done
+
+    for ng in $(aws eks list-nodegroups --cluster-name "$c" --region "$AWS_REGION" --query 'nodegroups' --output text 2>/dev/null); do
+      read -r size itype ngst issues < <(aws eks describe-nodegroup --cluster-name "$c" --nodegroup-name "$ng" \
+        --region "$AWS_REGION" --output json \
+        | jq -r '[.nodegroup.scalingConfig.desiredSize, (.nodegroup.instanceTypes[0] // "-"), .nodegroup.status, (.nodegroup.health.issues // [] | length)] | @tsv')
+      rate="$(node_rate "$itype")"
+      printf '    node group %-30s %-9s %s x %s   %s$%s/hr%s\n' "$ng" "$ngst" "$size" "$itype" "$C_RED" \
+        "$(awk -v r="${rate:-0}" -v n="$size" 'BEGIN{printf "%.3f", r*n}')" "$C_RESET"
+      if [[ -n "$rate" ]]; then
+        add_cost "$rate" "$size"
+      else
+        warn "no rate known for $itype - these nodes are running but not in the total below"
+      fi
+      # Counted per node, not per node group: two nodes are two billable
+      # instances, and the total has to match what can be counted by hand.
+      BILLABLE=$((BILLABLE + size))
+      if [[ "$issues" -gt 0 ]]; then
+        warn "node group $ng reports $issues health issue(s):"
+        warn "  aws eks describe-nodegroup --cluster-name $c --nodegroup-name $ng --query nodegroup.health --region $AWS_REGION"
+      fi
+    done
+
+    # The instances themselves, from EC2 rather than EKS: a node group can say
+    # ACTIVE while an instance is still pending, and an instance can outlive a
+    # node group that failed to delete cleanly.
+    while IFS=$'\t' read -r iid itype2 istate az; do
+      [[ -z "$iid" ]] && continue
+      printf '      instance %-22s %-10s %-9s %s\n' "$iid" "$itype2" "$istate" "$az"
+    done < <(aws ec2 describe-instances --region "$AWS_REGION" \
+      --filters "Name=tag:eks:cluster-name,Values=$c" "Name=instance-state-name,Values=pending,running,stopping,stopped" \
+      --output json | jq -r '.Reservations[].Instances[] | [.InstanceId, .InstanceType, .State.Name, .Placement.AvailabilityZone] | @tsv')
   done <<<"$clusters"
 fi
 
@@ -201,6 +240,25 @@ if [[ -z "$secrets" ]]; then
 else
   echo "$secrets" | while IFS=$'\t' read -r n st; do printf '  %-52s %s\n' "$n" "$st"; done
   echo "  ${C_DIM}\$0.40 per secret per month, billed whether or not anything is running${C_RESET}"
+fi
+
+# -------------------------------------------------- IAM and launch templates
+# Free - none of these bill. Listed because a leftover one has exactly the name
+# the next apply wants, and that apply then fails with EntityAlreadyExists.
+head1 "IAM and launch templates  ${C_DIM}(free, but a leftover blocks the next apply)${C_RESET}"
+iam_roles=$(aws iam list-roles --query "Roles[?starts_with(RoleName, '$PROJECT')].RoleName" --output text 2>/dev/null | tr '\t' '\n' | sed '/^$/d' || true)
+iam_policies=$(aws iam list-policies --scope Local --query "Policies[?starts_with(PolicyName, '$PROJECT')].PolicyName" --output text 2>/dev/null | tr '\t' '\n' | sed '/^$/d' || true)
+oidc_providers=$(project_oidc_providers)
+launch_templates=$(aws ec2 describe-launch-templates --region "$AWS_REGION" \
+  --filters "Name=launch-template-name,Values=$PROJECT-*" --query 'LaunchTemplates[].LaunchTemplateName' --output text 2>/dev/null \
+  | tr '\t' '\n' | sed '/^$/d' || true)
+if [[ -z "$iam_roles$iam_policies$oidc_providers$launch_templates" ]]; then
+  echo "  ${C_DIM}none${C_RESET}"
+else
+  while read -r x; do [[ -n "$x" ]] && printf '  role             %s\n' "$x"; done <<<"$iam_roles"
+  while read -r x; do [[ -n "$x" ]] && printf '  policy           %s\n' "$x"; done <<<"$iam_policies"
+  while read -r x; do [[ -n "$x" ]] && printf '  OIDC provider    %s\n' "${x#*oidc-provider/}"; done <<<"$oidc_providers"
+  while read -r x; do [[ -n "$x" ]] && printf '  launch template  %s\n' "$x"; done <<<"$launch_templates"
 fi
 
 # ------------------------------------------------------- everything by tag

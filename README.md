@@ -47,7 +47,7 @@ Python · Docker · Terraform · Ansible · Helm · Kubernetes (EKS) · Jenkins 
 
 ```
 app/          Python application source
-terraform/    modules/ and environments/ (bootstrap, dev, qa, prod, shared)
+terraform/    bootstrap/, modules/, and environments/ (dev, qa, prod, shared, shared-data)
 ansible/      cluster configuration, secrets bridging, database seeding
 helm/         the application's chart
 jenkins/      declarative pipelines, one per job
@@ -83,6 +83,8 @@ would remove the only record that they exist.
 | [docs/ECR.md](docs/ECR.md) | The container registry, the image tagging scheme, and how the cluster pulls |
 | [docs/DOCUMENTDB.md](docs/DOCUMENTDB.md) | The cluster, the enforced-TLS connection string, and the query subset |
 | [docs/RDS-MYSQL.md](docs/RDS-MYSQL.md) | The shared instance, why it has its own stack, and how three networks reach it |
+| [docs/KUBERNETES.md](docs/KUBERNETES.md) | The cluster with no internet route, its three identities, and pod security |
+| [docs/ANSIBLE.md](docs/ANSIBLE.md) | The playbooks between apply and deploy: the secrets bridge, schema, seeding, and smoke tests |
 | [docs/validation/](docs/validation/README.md) | Step-by-step checks for each completed phase |
 | [docs/ISSUES.md](docs/ISSUES.md) | Problems hit while building, what caused them and how they were fixed |
 
@@ -97,10 +99,19 @@ local MongoDB, routed to the success or failure bucket, reported on in two
 formats and recorded in MySQL; the same image that does it is built and pushed
 to ECR by `scripts/build-push.sh`.
 
-Also working: the qa AWS environment - a private VPC with no internet route,
-six VPC endpoints in place of a NAT gateway, a DocumentDB cluster, and a shared
+Also built and verified against live AWS, then torn down, as it is at the end of
+every session: the qa environment - a private VPC with no internet route, six
+VPC endpoints in place of a NAT gateway, a DocumentDB cluster, and a shared
 MySQL instance in its own stack, peered in, so that destroying qa cannot take
 prod's run history with it.
 
-Still to come: EKS, the Helm chart, the QA to production promotion gate,
+And its EKS cluster: two nodes that join, pull images and obtain credentials
+with no internet route; the application's IAM role bound to one Kubernetes
+service account, with the node's own credentials out of reach from any pod;
+and the Ansible playbooks that configure it - Secrets Manager copied into
+Kubernetes Secrets, the MySQL schema applied, DocumentDB reseeded from inside
+the cluster, and twelve connectivity checks run from a pod under the
+application's own identity before anything is deployed.
+
+Still to come: the Helm chart, the QA to production promotion gate,
 observability, Splunk, and the Jenkins pipelines.

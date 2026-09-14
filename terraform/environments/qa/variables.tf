@@ -39,3 +39,21 @@ variable "poll_interval_seconds" {
   type        = number
   default     = 20
 }
+
+variable "kubernetes_version" {
+  description = "Kubernetes minor version for the cluster. Check what EKS offers with: aws eks describe-cluster-versions."
+  type        = string
+  default     = "1.36"
+}
+
+variable "app_namespace" {
+  description = "Namespace the application runs in. One cluster per environment, so the namespace is the environment's name."
+  type        = string
+  default     = "qa"
+}
+
+variable "app_service_account" {
+  description = "The application's Kubernetes service account - the only identity the IRSA role trusts."
+  type        = string
+  default     = "mongo-dcu-pipeline-app"
+}

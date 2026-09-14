@@ -1,11 +1,11 @@
 # qa environment.
 #
 # A private VPC with no internet route at all, a DocumentDB cluster, the five
-# buckets, this environment's secrets, the application's IAM policy, and a
-# peering connection to the data tier so the pods can reach MySQL.
+# buckets, this environment's secrets, an EKS cluster, the application's IRSA
+# role, and a peering connection to the data tier so the pods can reach MySQL.
 #
-# EKS arrives in Phase 7. Everything here is what the cluster will need to
-# exist before it is worth creating one.
+# The cluster is the last thing that can usefully exist: until the endpoints
+# are in place a node cannot pull an image or register, so it waits for them.
 #
 # ORDER: apply terraform/environments/shared-data first. This stack reads that
 # stack's outputs to build the peering connection, and will fail at plan time
@@ -125,6 +125,23 @@ module "documentdb" {
   subnet_ids  = module.vpc.private_subnet_ids
 }
 
+# ----------------------------------------------------------------------- EKS
+
+module "eks" {
+  source = "../../modules/eks"
+
+  project            = var.project
+  environment        = "qa"
+  subnet_ids         = module.vpc.private_subnet_ids
+  kubernetes_version = var.kubernetes_version
+
+  # Explicit, because nothing in the module's inputs references the endpoints.
+  # Without it Terraform creates the node group in parallel with them, and a
+  # node that boots before ecr.dkr and sts exist fails to join the cluster -
+  # after a twenty-minute wait for the node group to give up.
+  depends_on = [module.endpoints]
+}
+
 # ------------------------------------------------------------------- secrets
 
 module "secrets" {
@@ -167,8 +184,13 @@ module "iam" {
     "${var.project}/shared/*",
   ]
 
-  # Empty until Phase 7. The role cannot trust an OIDC provider that does not
-  # exist, so this phase produces the policy and the next one attaches it.
-  oidc_provider_arn = ""
-  oidc_provider_url = ""
+  # The cluster's identity provider, which the role's trust policy names.
+  create_role       = true
+  oidc_provider_arn = module.eks.oidc_provider_arn
+  oidc_provider_url = module.eks.oidc_provider_url
+
+  # The one service account allowed to assume the role. Created by
+  # ansible/playbooks/service-account.yml, not by the Helm chart.
+  service_account_namespace = var.app_namespace
+  service_account_name      = var.app_service_account
 }

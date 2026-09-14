@@ -1,0 +1,79 @@
+# Checks every tool, library and collection the other playbooks rely on, and
+# names the exact fix for whatever is missing.
+#
+# Checks rather than installs. The command-line tools are system packages that
+# need root, and a playbook that quietly runs sudo on a workstation is one
+# nobody should trust.
+#
+#   ansible-playbook playbooks/prereqs.yml
+
+- name: Prerequisites
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    tools:
+      - { name: aws, argv: [aws, --version] }
+      - { name: kubectl, argv: [kubectl, version, --client] }
+      - { name: helm, argv: [helm, version, --short] }
+      - { name: terraform, argv: [terraform, version] }
+      - { name: docker, argv: [docker, --version] }
+      - { name: jq, argv: [jq, --version] }
+
+  tasks:
+    - name: Run each command-line tool
+      ansible.builtin.command:
+        argv: "{{ item.argv }}"
+      loop: "{{ tools }}"
+      loop_control:
+        label: "{{ item.name }}"
+      register: tool_checks
+      changed_when: false
+      failed_when: false
+
+    - name: Report the tools
+      ansible.builtin.debug:
+        msg: "{{ item.item.name }}: {{ (item.stdout_lines | default(['MISSING']) | first) if item.rc == 0 else 'MISSING - ' ~ (item.msg | default(item.stderr)) }}"
+      loop: "{{ tool_checks.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    - name: Check every tool is present
+      ansible.builtin.assert:
+        that: tool_checks.results | selectattr('rc', 'ne', 0) | list | length == 0
+        fail_msg: "missing or broken: {{ tool_checks.results | selectattr('rc', 'ne', 0) | map(attribute='item.name') | join(', ') }}"
+        success_msg: "all {{ tools | length }} tools present"
+
+    - name: Check Terraform supports S3-native state locking
+      ansible.builtin.assert:
+        that: _terraform_version is version('1.10.0', '>=')
+        fail_msg: "Terraform {{ _terraform_version }} is too old - use_lockfile needs 1.10 or newer"
+        success_msg: "Terraform {{ _terraform_version }}"
+      vars:
+        _terraform_version: "{{ (tool_checks.results | selectattr('item.name', 'eq', 'terraform') | first).stdout_lines[0] | regex_search('v([0-9.]+)', '\\1') | first }}"
+
+    - name: Import the Python libraries the modules need
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_python_interpreter }}"
+          - -c
+          - "import boto3, kubernetes, pymysql, yaml; print('boto3', boto3.__version__, '| kubernetes', kubernetes.__version__, '| PyMySQL', pymysql.VERSION_STRING)"
+      register: python_libraries
+      changed_when: false
+      failed_when: false
+
+    - name: Check the Python libraries
+      ansible.builtin.assert:
+        that: python_libraries.rc == 0
+        fail_msg: >-
+          {{ python_libraries.stderr_lines | default([]) | last | default('import failed') }}.
+          Fix: {{ repo_root }}/.venv/bin/pip install -r {{ repo_root }}/ansible/requirements.txt
+        success_msg: "{{ python_libraries.stdout | default('') }}"
+
+    - name: Identify the AWS caller
+      amazon.aws.aws_caller_info:
+      register: caller
+
+    - name: Report the AWS caller
+      ansible.builtin.debug:
+        msg: "AWS account {{ caller.account }} as {{ caller.arn }}"

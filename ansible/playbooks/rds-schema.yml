@@ -1,0 +1,85 @@
+# Creates the runs, run_lines and email_notifications tables on the shared
+# MySQL instance, from sql/schema.sql - the same file the local MySQL
+# container applies on first start.
+#
+# Runs from this machine, over the instance's public endpoint, rather than from
+# inside the cluster. That is deliberate: the promotion gate in Phase 9 is
+# checked by Jenkins from here too, so this is the path that has to work.
+#
+# Safe to rerun - the schema is CREATE ... IF NOT EXISTS throughout.
+#
+#   ansible-playbook playbooks/rds-schema.yml -e target_env=qa
+
+- name: RDS schema
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Load the environment context
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/load-context.yml"
+
+    - name: Find this machine's public address
+      ansible.builtin.uri:
+        url: https://checkip.amazonaws.com
+        return_content: true
+      register: my_ip
+
+    - name: Check the RDS admin rule still names this machine
+      ansible.builtin.assert:
+        that: (my_ip.content | trim) ~ '/32' == tf_data.admin_cidr
+        fail_msg: >-
+          MySQL admits {{ tf_data.admin_cidr }}, but this machine is now
+          {{ my_ip.content | trim }} - a home address changes. Update the rule:
+          terraform -chdir={{ repo_root }}/terraform/environments/shared-data apply
+        quiet: true
+
+    - name: Read the MySQL credential
+      ansible.builtin.command:
+        argv: [aws, secretsmanager, get-secret-value, --secret-id, "{{ tf_data.rds_secret_name }}", --region, "{{ aws_region }}", --query, SecretString, --output, text]
+      register: rds_secret_raw
+      changed_when: false
+      no_log: true
+
+    - name: Hold the credential in memory
+      ansible.builtin.set_fact:
+        rds: "{{ rds_secret_raw.stdout | from_json }}"
+      no_log: true
+
+    # community.mysql.mysql_db can import a file, but only by shelling out to
+    # the mysql command-line client, which this project does not install.
+    - name: Apply sql/schema.sql
+      ansible.builtin.command:
+        argv:
+          - "{{ ansible_python_interpreter }}"
+          - "{{ playbook_dir }}/../files/apply_schema.py"
+          - "{{ repo_root }}/sql/schema.sql"
+      environment:
+        MYSQL_HOST: "{{ rds.host }}"
+        MYSQL_PORT: "{{ rds.port | string }}"
+        MYSQL_USER: "{{ rds.username }}"
+        MYSQL_PASSWORD: "{{ rds.password }}"
+        MYSQL_DATABASE: "{{ rds.database }}"
+      register: schema_apply
+      changed_when: (schema_apply.stdout | from_json).created | length > 0
+
+    - name: List the tables with the MySQL module
+      community.mysql.mysql_query:
+        login_host: "{{ rds.host }}"
+        login_port: "{{ rds.port | int }}"
+        login_user: "{{ rds.username }}"
+        login_password: "{{ rds.password }}"
+        login_db: "{{ rds.database }}"
+        query: >-
+          SELECT table_name AS name FROM information_schema.tables
+          WHERE table_schema = %s ORDER BY table_name
+        positional_args:
+          - "{{ rds.database }}"
+      register: tables
+
+    - name: Check all three tables exist
+      ansible.builtin.assert:
+        that: (['email_notifications', 'run_lines', 'runs'] | difference(_names)) | length == 0
+        fail_msg: "missing tables: {{ ['email_notifications', 'run_lines', 'runs'] | difference(_names) | join(', ') }}"
+        success_msg: "{{ rds.database }} on {{ rds.host }}: {{ _names | join(', ') }}"
+      vars:
+        _names: "{{ tables.query_result[0] | map(attribute='name') | list }}"

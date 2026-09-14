@@ -1,0 +1,48 @@
+# Values every playbook shares. Nothing AWS generates is here - endpoints, ARNs
+# and the image tag change on every apply, so tasks/load-context.yml reads them
+# from Terraform outputs and the registry at run time.
+
+project: mongo-dcu-pipeline
+aws_region: us-east-1
+
+# The environment to act on. Override on the command line: -e target_env=prod
+target_env: qa
+
+repo_root: "{{ (inventory_dir ~ '/../..') | realpath }}"
+
+cluster_name: "{{ project }}-{{ target_env }}"
+
+# update-kubeconfig runs with --alias, so the context carries the cluster's
+# name rather than its ARN.
+kube_context: "{{ cluster_name }}"
+
+# One cluster per environment, so the application's namespace is simply the
+# environment's name: qa in the qa cluster, prod in the prod cluster.
+app_namespace: "{{ target_env }}"
+monitoring_namespace: monitoring
+app_service_account: "{{ project }}-app"
+
+# Kubernetes Secret names, one per Secrets Manager entry each is copied from.
+k8s_secret_docdb: "{{ project }}-docdb"
+k8s_secret_rds: "{{ project }}-rds"
+k8s_secret_ses: "{{ project }}-ses"
+
+node_count: 2
+
+# A pushed tag to run. Empty means the most recently pushed commit tag.
+image_tag: ""
+
+# The image's USER is a name (appuser), and the kubelet cannot prove a name is
+# not root, so runAsNonRoot on its own is refused. The number is stated
+# instead - the Dockerfile's default APP_UID.
+app_uid: 1001
+
+# SES starts in sandbox mode, where sender and recipient must both be verified
+# by clicking a link in an email. Off until that has been done.
+ses_enabled: false
+
+helm_repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    url: https://grafana.github.io/helm-charts

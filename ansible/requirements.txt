@@ -1,0 +1,13 @@
+# Python libraries the Ansible modules import. Installed into the project's
+# virtual environment, which the inventory names as the interpreter:
+#
+#   .venv/bin/pip install -r ansible/requirements.txt
+#
+# Pinned to the same boto3 and PyMySQL the application image uses, so a check
+# that passes from here is exercising the same client code the pod runs.
+boto3==1.43.92
+botocore==1.43.92
+PyMySQL==1.2.0
+
+# kubernetes.core's modules talk to the API server through this client.
+kubernetes==36.0.3

@@ -1,0 +1,12 @@
+# Every play runs on this machine. There is no fleet to configure: the cluster
+# is managed through its API, the databases through their endpoints, and AWS
+# through its APIs - all from here.
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
+      # Modules run under the project's virtual environment rather than the
+      # Python Ansible was installed with. The AWS, Kubernetes and MySQL modules
+      # import boto3, kubernetes and PyMySQL, and the system Python has none of
+      # them. Install with: .venv/bin/pip install -r ansible/requirements.txt
+      ansible_python_interpreter: "{{ inventory_dir }}/../../.venv/bin/python"

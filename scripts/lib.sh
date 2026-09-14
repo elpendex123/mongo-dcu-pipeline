@@ -49,6 +49,29 @@ RATE_RDS_T3_MICRO=0.017
 RATE_VPC_ENDPOINT=0.01      # per interface endpoint, per availability zone
 RATE_NAT_GATEWAY=0.045      # nothing should ever create one of these
 
+# Hourly rate for a node instance type, or nothing when the type is unknown -
+# so a caller can warn that a node is running uncounted instead of reporting a
+# total that is quietly too low.
+node_rate() {
+  case "$1" in
+    t3.small) echo "$RATE_NODE_T3_SMALL" ;;
+    *)        echo "" ;;
+  esac
+}
+
+# IAM OIDC providers carrying the project tag. A provider is named by its
+# issuer URL, which says nothing about which project it belongs to - only the
+# tag does, so this is the one IAM resource that cannot be found by name.
+project_oidc_providers() {
+  local arn
+  for arn in $(aws iam list-open-id-connect-providers --query 'OpenIDConnectProviderList[].Arn' --output text 2>/dev/null); do
+    aws iam list-open-id-connect-provider-tags --open-id-connect-provider-arn "$arn" --output json 2>/dev/null \
+      | jq -e --arg p "$PROJECT" 'any(.Tags[]?; .Key == "project" and .Value == $p)' >/dev/null \
+      && echo "$arn"
+  done
+  return 0
+}
+
 # Adds to the running cost total. Bash has no floats, so the accumulator is
 # kept in millicents and divided at the end.
 COST_TOTAL_MILLI=0

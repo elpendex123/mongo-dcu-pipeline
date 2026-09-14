@@ -5,7 +5,13 @@ environment, and the three scripts that keep the account from quietly billing -
 `status.sh`, `nuke.sh` and `teardown.sh`.
 
 **Cost: this is the first phase that spends money.** qa plus the data tier is
-about **$0.154/hr** with no cluster yet. Run `status.sh` before you stop for the
+about **$0.154/hr** with no cluster yet.
+
+> **From Phase 7 on, the qa stack also creates the EKS cluster.** Applying it
+> today reports 11 billable resources at about $0.296/hr, not 8 at $0.154, and
+> the IRSA check in section 5 shows a role annotation rather than "no role".
+> [PHASE-07-eks-ansible.md](PHASE-07-eks-ansible.md) is the current guide for
+> the qa stack; this one stays as the record of what Phase 6 proved. Run `status.sh` before you stop for the
 day, and `teardown.sh` when you do.
 
 ## Variables used in this guide

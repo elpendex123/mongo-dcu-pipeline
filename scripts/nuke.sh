@@ -87,6 +87,18 @@ VPCS=$(aws ec2 describe-vpcs --region "$AWS_REGION" --filters "Name=tag:project,
 SECRETS=$(aws secretsmanager list-secrets --region "$AWS_REGION" --output json 2>/dev/null \
   | jq -r '.SecretList[]? | select(.Name | startswith("'"$PROJECT"'")) | select(.DeletedDate | not) | .Name' || true)
 
+# Free resources, discovered and counted all the same. Leaving them out of the
+# count made the script report "nothing to delete" and exit while a role was
+# still there - the one leftover guaranteed to fail the next apply.
+IAM_ROLES=$(aws iam list-roles --query "Roles[?starts_with(RoleName, '$PROJECT')].RoleName" --output text 2>/dev/null \
+  | tr '\t' '\n' | sed '/^$/d' || true)
+IAM_POLICIES=$(aws iam list-policies --scope Local --query "Policies[?starts_with(PolicyName, '$PROJECT')].Arn" --output text 2>/dev/null \
+  | tr '\t' '\n' | sed '/^$/d' || true)
+OIDC_PROVIDERS=$(project_oidc_providers)
+LAUNCH_TEMPLATES=$(aws ec2 describe-launch-templates --region "$AWS_REGION" \
+  --filters "Name=launch-template-name,Values=$PROJECT-*" --query 'LaunchTemplates[].LaunchTemplateName' --output text 2>/dev/null \
+  | tr '\t' '\n' | sed '/^$/d' || true)
+
 if [[ "$SKIP_DEV" == "true" ]]; then
   SWEEP_ENVIRONMENTS=()
   for e in "${ENVIRONMENTS[@]}"; do [[ "$e" == "dev" ]] || SWEEP_ENVIRONMENTS+=("$e"); done
@@ -109,6 +121,10 @@ show "RDS instances"   "$RDS_INSTANCES"
 show "VPCs"            "$VPCS"
 show "secrets"         "$SECRETS"
 show "S3 buckets"      "${BUCKETS[*]:-}"
+show "IAM roles"       "$IAM_ROLES"
+show "IAM policies"    "$IAM_POLICIES"
+show "OIDC providers"  "$OIDC_PROVIDERS"
+show "launch templates" "$LAUNCH_TEMPLATES"
 
 # grep -c exits 1 when it counts zero, which under `set -e` would kill the
 # script in the middle of the arithmetic that is asking "is there anything to
@@ -117,7 +133,9 @@ count_lines() { local v="${1:-}"; [[ -z "${v// }" ]] && { echo 0; return; }; pri
 
 TOTAL=$(( $(count_lines "${EKS_CLUSTERS:-}") + $(count_lines "${DOCDB_CLUSTERS:-}") \
         + $(count_lines "${RDS_INSTANCES:-}") + $(count_lines "${VPCS:-}") \
-        + $(count_lines "${SECRETS:-}") + ${#BUCKETS[@]} ))
+        + $(count_lines "${SECRETS:-}") + ${#BUCKETS[@]} \
+        + $(count_lines "${IAM_ROLES:-}") + $(count_lines "${IAM_POLICIES:-}") \
+        + $(count_lines "${OIDC_PROVIDERS:-}") + $(count_lines "${LAUNCH_TEMPLATES:-}") ))
 if [[ "$TOTAL" -eq 0 ]]; then
   ok "nothing to delete - no unprotected project resources exist"
   exit 0
@@ -148,6 +166,17 @@ if [[ -n "$EKS_CLUSTERS" ]]; then
     aws eks delete-cluster --name "$c" --region "$AWS_REGION" >/dev/null
     wait_gone "cluster $c" "aws eks describe-cluster --name $c --region $AWS_REGION"
   done <<<"$EKS_CLUSTERS"
+fi
+
+# Deleted after the node groups that launched from them. Free, but a leftover
+# has the name the next apply wants.
+if [[ -n "$LAUNCH_TEMPLATES" ]]; then
+  head1 "launch templates"
+  while read -r lt; do
+    [[ -z "$lt" ]] && continue
+    aws ec2 delete-launch-template --launch-template-name "$lt" --region "$AWS_REGION" >/dev/null 2>&1 \
+      && ok "deleted launch template $lt" || warn "could not delete launch template $lt"
+  done <<<"$LAUNCH_TEMPLATES"
 fi
 
 # ---------------------------------------------------------------- DocumentDB
@@ -301,24 +330,40 @@ if [[ ${#BUCKETS[@]} -gt 0 ]]; then
 fi
 
 # --------------------------------------------------------------------- IAM
-head1 "IAM"
-for r in $(aws iam list-roles --query "Roles[?starts_with(RoleName, '$PROJECT')].RoleName" --output text | tr '\t' '\n'); do
-  [[ -z "$r" ]] && continue
-  for p in $(aws iam list-attached-role-policies --role-name "$r" --query 'AttachedPolicies[].PolicyArn' --output text); do
-    aws iam detach-role-policy --role-name "$r" --policy-arn "$p" >/dev/null 2>&1 || true
-  done
-  for p in $(aws iam list-role-policies --role-name "$r" --query 'PolicyNames' --output text); do
-    aws iam delete-role-policy --role-name "$r" --policy-name "$p" >/dev/null 2>&1 || true
-  done
-  aws iam delete-role --role-name "$r" >/dev/null 2>&1 && ok "deleted role $r" || warn "could not delete role $r"
-done
-for a in $(aws iam list-policies --scope Local --query "Policies[?starts_with(PolicyName, '$PROJECT')].Arn" --output text | tr '\t' '\n'); do
-  [[ -z "$a" ]] && continue
-  for v in $(aws iam list-policy-versions --policy-arn "$a" --query 'Versions[?!IsDefaultVersion].VersionId' --output text); do
-    aws iam delete-policy-version --policy-arn "$a" --version-id "$v" >/dev/null 2>&1 || true
-  done
-  aws iam delete-policy --policy-arn "$a" >/dev/null 2>&1 && ok "deleted policy $a" || warn "could not delete policy $a"
-done
+# Last, because every service above was using these roles until it was gone.
+if [[ -n "$IAM_ROLES$IAM_POLICIES$OIDC_PROVIDERS" ]]; then
+  head1 "IAM"
+  while read -r r; do
+    [[ -z "$r" ]] && continue
+    # EKS attaches the node role to an instance profile of its own making. A
+    # role still in a profile cannot be deleted, whatever else is detached.
+    for ip in $(aws iam list-instance-profiles-for-role --role-name "$r" --query 'InstanceProfiles[].InstanceProfileName' --output text 2>/dev/null); do
+      aws iam remove-role-from-instance-profile --instance-profile-name "$ip" --role-name "$r" >/dev/null 2>&1 || true
+      aws iam delete-instance-profile --instance-profile-name "$ip" >/dev/null 2>&1 && ok "deleted instance profile $ip" || true
+    done
+    for p in $(aws iam list-attached-role-policies --role-name "$r" --query 'AttachedPolicies[].PolicyArn' --output text); do
+      aws iam detach-role-policy --role-name "$r" --policy-arn "$p" >/dev/null 2>&1 || true
+    done
+    for p in $(aws iam list-role-policies --role-name "$r" --query 'PolicyNames' --output text); do
+      aws iam delete-role-policy --role-name "$r" --policy-name "$p" >/dev/null 2>&1 || true
+    done
+    aws iam delete-role --role-name "$r" >/dev/null 2>&1 && ok "deleted role $r" || warn "could not delete role $r"
+  done <<<"$IAM_ROLES"
+
+  while read -r a; do
+    [[ -z "$a" ]] && continue
+    for v in $(aws iam list-policy-versions --policy-arn "$a" --query 'Versions[?!IsDefaultVersion].VersionId' --output text); do
+      aws iam delete-policy-version --policy-arn "$a" --version-id "$v" >/dev/null 2>&1 || true
+    done
+    aws iam delete-policy --policy-arn "$a" >/dev/null 2>&1 && ok "deleted policy $a" || warn "could not delete policy $a"
+  done <<<"$IAM_POLICIES"
+
+  while read -r o; do
+    [[ -z "$o" ]] && continue
+    aws iam delete-open-id-connect-provider --open-id-connect-provider-arn "$o" >/dev/null 2>&1 \
+      && ok "deleted OIDC provider ${o#*oidc-provider/}" || warn "could not delete OIDC provider $o"
+  done <<<"$OIDC_PROVIDERS"
+fi
 
 # ---------------------------------------------------------------- verification
 head1 "verification"

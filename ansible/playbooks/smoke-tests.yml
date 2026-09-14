@@ -1,0 +1,144 @@
+# Connectivity checks that fail fast, before anything is deployed.
+#
+# Two vantage points, because the system has two:
+#
+#   from here     the Kubernetes API, node readiness, CoreDNS, MySQL's public
+#                 endpoint - the paths kubectl, Helm and Jenkins use
+#   from a pod    DocumentDB and MySQL over private DNS, TLS, a real write,
+#                 IRSA credentials, S3 and Secrets Manager through the
+#                 endpoints, and that the node's own credentials are out of
+#                 reach - the paths the application uses
+#
+# The in-cluster half runs under the application's own service account with its
+# own Secrets, so a pass means the application will be able to do the same -
+# not that something with broader access could.
+#
+#   ansible-playbook playbooks/smoke-tests.yml -e target_env=qa
+
+- name: Smoke tests
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    job_name: smoke-tests
+    job_configmap: "{{ project }}-smoke-tests"
+    # How many checks files/smoke_test.py runs. Asserted, because a check that
+    # never reports is not a check that passed.
+    smoke_expected_checks: 12
+
+  tasks:
+    - name: Load the environment context
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/load-context.yml"
+
+    # ------------------------------------------------------------ from here
+    - name: "From here: the Kubernetes API answers"
+      kubernetes.core.k8s_cluster_info:
+        context: "{{ kube_context }}"
+      register: api
+
+    - name: "From here: nodes are Ready"
+      kubernetes.core.k8s_info:
+        context: "{{ kube_context }}"
+        kind: Node
+      register: nodes
+      failed_when: >-
+        nodes.resources | map(attribute='status.conditions') | flatten
+        | selectattr('type', 'eq', 'Ready') | selectattr('status', 'eq', 'True')
+        | list | length < node_count
+
+    - name: "From here: CoreDNS is available"
+      kubernetes.core.k8s_info:
+        context: "{{ kube_context }}"
+        api_version: apps/v1
+        kind: Deployment
+        name: coredns
+        namespace: kube-system
+      register: coredns
+      failed_when: coredns.resources | length == 0 or (coredns.resources[0].status.availableReplicas | default(0)) < 1
+
+    - name: "From here: MySQL's public endpoint accepts connections"
+      ansible.builtin.wait_for:
+        host: "{{ tf_data.rds_address }}"
+        port: 3306
+        timeout: 10
+
+    # ------------------------------------------------------------ from a pod
+    - name: Publish the in-cluster checks
+      kubernetes.core.k8s:
+        context: "{{ kube_context }}"
+        state: present
+        force: true
+        definition:
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: "{{ job_configmap }}"
+            namespace: "{{ app_namespace }}"
+            labels:
+              app.kubernetes.io/part-of: "{{ project }}"
+              app.kubernetes.io/managed-by: ansible
+          data:
+            smoke_test.py: "{{ lookup('ansible.builtin.file', playbook_dir ~ '/../files/smoke_test.py') | string }}"
+
+    - name: Run the in-cluster checks
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/run-job.yml"
+      vars:
+        job_command: [python, /scripts/smoke_test.py]
+        job_service_account: "{{ app_service_account }}"
+        job_env:
+          - { name: AWS_REGION, value: "{{ aws_region }}" }
+          # Required for IRSA in a VPC with no internet route - issue 17.
+          - { name: AWS_DEFAULT_REGION, value: "{{ aws_region }}" }
+          - { name: MONGO_DATABASE, value: mongo_dcu }
+          - { name: EXPECTED_ROLE_ARN, value: "{{ tf_env.irsa_role_arn }}" }
+          - { name: OWN_BUCKET, value: "{{ tf_env.bucket_names.input }}" }
+          - { name: FOREIGN_BUCKET, value: "{{ project }}-dev-input-{{ aws_account_id }}" }
+          - { name: OWN_SECRET, value: "{{ tf_env.secret_names.docdb }}" }
+        job_env_from:
+          - secretRef:
+              name: "{{ k8s_secret_docdb }}"
+          - secretRef:
+              name: "{{ k8s_secret_rds }}"
+        # Longer than 12 checks at their 15-second cap, so the script always
+        # reaches its summary line and the pod is never killed mid-check - a
+        # Job killed at its deadline takes its pod, and its log, with it.
+        job_timeout_seconds: 240
+
+    - name: Read the results
+      ansible.builtin.set_fact:
+        smoke_results: "{{ _lines | selectattr('check', 'defined') | list }}"
+        smoke_summary: "{{ _lines | selectattr('summary', 'defined') | first | default({}) }}"
+      vars:
+        _lines: "{{ job_log_lines | select('match', '^\\{') | map('from_json') | list }}"
+
+    - name: Report each check
+      ansible.builtin.debug:
+        msg: "{{ 'PASS' if item.ok else 'FAIL' }}  {{ item.check }}  -  {{ item.detail }}  ({{ item.ms }} ms)"
+      loop: "{{ smoke_results }}"
+      loop_control:
+        label: "{{ item.check }}"
+
+    # Four conditions, not one. Checking only that every reported line passed
+    # once let a run that hung on check 8 and was killed at its deadline pass
+    # as "all 7 in-cluster checks passed" (issue 16). The script has to have
+    # finished, the Job has to have succeeded, and every check has to be there.
+    - name: Check every in-cluster check ran and passed
+      ansible.builtin.assert:
+        that:
+          - smoke_summary | length > 0
+          - smoke_results | length == smoke_expected_checks
+          - smoke_results | rejectattr('ok') | list | length == 0
+          - (job_status.succeeded | default(0)) > 0
+        fail_msg: >-
+          {% if job_waiting_reasons | length > 0 and smoke_results | length == 0 %}
+          the pod never started: {{ job_waiting_reasons | join(', ') }}
+          {% elif smoke_summary | length == 0 %}
+          the check script did not finish - {{ smoke_results | length }} of {{ smoke_expected_checks }}
+          checks reported before the Job ended
+          ({{ job_status.conditions | default([]) | map(attribute='reason') | select('defined') | unique | join(', ') | default('no reason given', true) }}).
+          Check {{ smoke_results | length + 1 }} is where it stopped.
+          {% else %}
+          {{ smoke_results | rejectattr('ok') | list | length }} check(s) failed:
+          {{ smoke_results | rejectattr('ok') | map(attribute='check') | join('; ') }}
+          {% endif %}
+        success_msg: "all {{ smoke_results | length }} of {{ smoke_expected_checks }} in-cluster checks ran and passed"

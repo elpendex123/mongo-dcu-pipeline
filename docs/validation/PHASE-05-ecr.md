@@ -4,8 +4,8 @@
 and the cross-environment analytics bucket, both outside any environment's
 lifecycle - and `scripts/build-push.sh`.
 
-**Cost:** a few cents a month for image storage. The $0.53/hr clock starts in
-Phase 6, not here.
+**Cost:** a few cents a month for image storage. The hourly clock starts in
+Phase 6, at $0.154/hr for qa and the data tier, not here.
 
 ## Variables used in this guide
 

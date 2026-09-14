@@ -14,6 +14,7 @@ form, so it can be practised by hand as well as pasted.
 | 4 | [Vertical slice](PHASE-04-vertical-slice.md) | A file routed end to end, with reports, history and metrics |
 | 5 | [Container registry](PHASE-05-ecr.md) | The shared stack, the image in ECR, and the trap in the tag query |
 | 6 | [AWS foundations](PHASE-06-aws-foundations.md) | The data tier, qa, and the three scripts that stop the account billing |
+| 7 | [EKS and Ansible](PHASE-07-eks-ansible.md) | A cluster with no internet route, IRSA, the secrets bridge, and twelve checks from inside a pod |
 
 ## Variables used in these guides
 
@@ -64,6 +65,10 @@ A variable that appears inside a `for` loop in a snippet - `$name`, `$bucket`,
 
 `terraform` >= 1.10, `aws` v2, `jq`, `docker` with Compose v2, `git`, `gh`.
 Python 3.12 or newer for the local virtual environment.
+
+From Phase 7: `kubectl` within one minor version of the cluster, `helm` 3,
+`ansible-core` 2.19 or newer with the collections in `ansible/requirements.yml`,
+and the libraries in `ansible/requirements.txt` installed into `.venv`.
 
 ## Five-minute check
 

@@ -1,0 +1,33 @@
+# Renders the per-session Helm values for the application chart from Terraform
+# outputs. Endpoints, the IRSA role ARN, bucket names and
+# the image tag all change between sessions; none of them is typed.
+#
+# Output: ansible/generated/values-<env>.yaml (gitignored). The chart that
+# reads it arrives in Phase 8.
+#
+#   ansible-playbook playbooks/render-values.yml -e target_env=qa
+
+- name: Render Helm values
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: Load the environment context
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../tasks/load-context.yml"
+
+    - name: Make the output directory
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/../generated"
+        state: directory
+        mode: "0755"
+
+    - name: Render values-{{ target_env }}.yaml
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/values.yaml.j2"
+        dest: "{{ playbook_dir }}/../generated/values-{{ target_env }}.yaml"
+        mode: "0644"
+      register: rendered
+
+    - name: Report the file
+      ansible.builtin.debug:
+        msg: "{{ rendered.dest | realpath }} - image {{ image_repository }}:{{ image_ref_tag }}"
