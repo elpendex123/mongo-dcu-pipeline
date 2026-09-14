@@ -26,6 +26,15 @@ from .models import RunResult
 log = get_logger("db")
 
 
+class RunHistoryUnavailable(Exception):
+    """Run history could not be read when an answer was required.
+
+    Most of this module is best-effort. The prod run-once guard is not: it has
+    to know whether a file has run before, so a failed read is raised rather
+    than swallowed, and the file waits in the input bucket for the next try.
+    """
+
+
 class Database:
     """Writes run history. Every method is best-effort by design."""
 
@@ -92,15 +101,20 @@ class Database:
                     """
                     INSERT INTO runs (
                         run_id, environment, file_name, file_hash,
-                        status, started_at
-                    ) VALUES (%s, %s, %s, %s, %s, %s)
+                        status, promoted_from_run_id, started_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         run.run_id,
                         run.environment,
                         run.file_name,
                         run.file_hash,
-                        "running",
+                        # A refusal is written as one from the start. A row left
+                        # marked running by a process killed mid-refusal would
+                        # otherwise look like an interrupted prod run, and block
+                        # the file for good.
+                        "refused" if run.refusal_reason else "running",
+                        run.promoted_from_run_id,
                         _naive_utc(run.started_at),
                     ),
                 )
@@ -108,12 +122,7 @@ class Database:
         except Exception as error:
             log.exception("could not record the run start", error=str(error))
 
-    def record_run_finish(
-        self,
-        run: RunResult,
-        promotion_token: str | None = None,
-        token_expires_at: datetime | None = None,
-    ) -> None:
+    def record_run_finish(self, run: RunResult) -> None:
         """Update the run with its outcome, and its promotion token if it has one."""
         if not self._settings.enabled:
             return
@@ -144,8 +153,8 @@ class Database:
                         run.status,
                         _naive_utc(run.completed_at),
                         run.duration_ms,
-                        promotion_token,
-                        _naive_utc(token_expires_at),
+                        run.promotion_token,
+                        _naive_utc(run.token_expires_at),
                         run.run_id,
                     ),
                 )
@@ -222,6 +231,54 @@ class Database:
             log.info("recorded notification", type=notification_type)
         except Exception as error:
             log.exception("could not record the notification", error=str(error))
+
+    def prior_prod_runs(self, file_hash: str) -> list[str]:
+        """Production runs of a file with this hash, newest first, refusals excluded.
+
+        A run still marked running is included on purpose: it was interrupted
+        part way, and may have applied some of its writes.
+
+        Raises:
+            RunHistoryUnavailable: if the answer cannot be read.
+        """
+        rows = self._query_required(
+            """
+            SELECT run_id FROM runs
+             WHERE environment = 'prod' AND file_hash = %s AND status <> 'refused'
+             ORDER BY started_at DESC
+            """,
+            (file_hash,),
+        )
+        return [row[0] for row in rows]
+
+    def authorising_qa_run(self, file_hash: str) -> str | None:
+        """The most recent successful qa run of this file whose token was used.
+
+        Raises:
+            RunHistoryUnavailable: if the answer cannot be read.
+        """
+        rows = self._query_required(
+            """
+            SELECT run_id FROM runs
+             WHERE environment = 'qa' AND file_hash = %s
+               AND status = 'success' AND token_used = TRUE
+             ORDER BY completed_at DESC
+             LIMIT 1
+            """,
+            (file_hash,),
+        )
+        return rows[0][0] if rows else None
+
+    def _query_required(self, sql: str, params: tuple) -> tuple:
+        """A read whose failure is raised, for the questions that need an answer."""
+        if not self._settings.enabled:
+            raise RunHistoryUnavailable("run history is disabled")
+        try:
+            with self._cursor() as cursor:
+                cursor.execute(sql, params)
+                return cursor.fetchall()
+        except Exception as error:
+            raise RunHistoryUnavailable(str(error)) from error
 
     def check_connection(self) -> bool:
         """Startup smoke test, so a bad password fails at boot with a clear message."""

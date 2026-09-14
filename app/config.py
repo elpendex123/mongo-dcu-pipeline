@@ -147,6 +147,11 @@ def load_config() -> Config:
     )
 
     mysql_enabled = boolean("MYSQL_ENABLED", True)
+    # Not optional in prod. The run-once guard decides whether a file may run
+    # by reading run history, and a prod pipeline that cannot read it has no
+    # way to know a file has not run before.
+    if environment == "prod" and not mysql_enabled:
+        problems.append("MYSQL_ENABLED must be true in prod - the run-once guard reads run history")
     mysql = MySQLSettings(
         enabled=mysql_enabled,
         host=required("MYSQL_HOST") if mysql_enabled else "",

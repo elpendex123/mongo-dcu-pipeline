@@ -45,6 +45,16 @@ def build_json_report(run: RunResult) -> str:
         "started_at": run.started_at.isoformat(),
         "completed_at": run.completed_at.isoformat() if run.completed_at else None,
         "duration_ms": run.duration_ms,
+        "promotion": (
+            {
+                "token": run.promotion_token,
+                "expires_at": run.token_expires_at.isoformat() if run.token_expires_at else None,
+            }
+            if run.promotion_token
+            else None
+        ),
+        "promoted_from_run_id": run.promoted_from_run_id,
+        "refusal_reason": run.refusal_reason,
         "totals": {
             "total_lines": run.total_lines,
             "skipped_lines": run.skipped_lines,
@@ -99,6 +109,10 @@ def build_log_report(run: RunResult) -> str:
     )
     lines.append(f"  duration    : {run.duration_ms} ms")
     lines.append(f"  status      : {run.status.upper()}")
+    if run.promotion_token:
+        lines.append(f"  promotion   : token {run.promotion_token}, expires {_utc(run.token_expires_at)}")
+    if run.promoted_from_run_id:
+        lines.append(f"  promoted    : from qa run {run.promoted_from_run_id}")
     lines.append("")
     lines.append(
         f"  {run.total_lines} queries: "
@@ -122,6 +136,17 @@ def build_log_report(run: RunResult) -> str:
             lines.append(f"            {detail}")
         if line.error_message:
             lines.append(f"            -> {line.error_message}")
+
+    if run.refusal_reason:
+        lines.append("")
+        lines.append("-" * 78)
+        lines.append("  why prod refused this file")
+        lines.append("-" * 78)
+        lines.append("")
+        lines.append(f"  {run.refusal_reason}")
+        lines.append("")
+        lines.append("  Nothing in the file was executed. Every line above is marked --.")
+        lines.append("")
 
     if run.failed_lines:
         lines.append("")
@@ -165,3 +190,7 @@ def build_log_report(run: RunResult) -> str:
 
     lines.append(rule)
     return "\n".join(lines) + "\n"
+
+
+def _utc(value) -> str:
+    return f"{value:%Y-%m-%d %H:%M:%S} UTC" if value else "-"

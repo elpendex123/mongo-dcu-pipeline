@@ -32,7 +32,9 @@ CREATE TABLE IF NOT EXISTS runs (
     execution_fail_count  INT          NOT NULL DEFAULT 0,
     skipped_lines         INT          NOT NULL DEFAULT 0,
 
-    -- running while the file is in flight, then success or failed.
+    -- running while the file is in flight, then success or failed - or
+    -- refused, for a prod file the run-once guard would not run: never
+    -- promoted, or run before. Nothing in a refused file is executed.
     status                VARCHAR(16)  NOT NULL,
 
     -- Promotion gate. Issued only on a fully successful qa run, usable once,
@@ -102,7 +104,7 @@ CREATE TABLE IF NOT EXISTS email_notifications (
     run_id           CHAR(36)     NOT NULL,
     environment      VARCHAR(10)  NOT NULL,
 
-    -- start, success or failure.
+    -- start, success, failure or refused.
     type             VARCHAR(16)  NOT NULL,
 
     recipients       VARCHAR(512) NULL,

@@ -38,6 +38,12 @@ class RunStatus:
     SUCCESS = "success"
     FAILED = "failed"
 
+    # A prod file the run-once guard would not run: never promoted, or run
+    # before. Kept apart from failed, because the guard looks for earlier prod
+    # runs of a file - and a refusal, which executed nothing, must not count as
+    # one, or a file refused for arriving unpromoted could never be promoted.
+    REFUSED = "refused"
+
 
 @dataclass
 class LineResult:
@@ -69,6 +75,16 @@ class RunResult:
     completed_at: datetime | None = None
     lines: list[LineResult] = field(default_factory=list)
     skipped_lines: int = 0
+
+    # Issued on a fully successful qa run - see app/promotion.py.
+    promotion_token: str | None = None
+    token_expires_at: datetime | None = None
+
+    # On a prod run, the qa run whose token authorised it.
+    promoted_from_run_id: str | None = None
+
+    # Set when prod will not run the file. Nothing in it is executed.
+    refusal_reason: str | None = None
 
     @property
     def total_lines(self) -> int:
@@ -104,6 +120,8 @@ class RunResult:
         """
         if self.completed_at is None:
             return RunStatus.RUNNING
+        if self.refusal_reason:
+            return RunStatus.REFUSED
         return RunStatus.FAILED if self.failed_lines else RunStatus.SUCCESS
 
     @property

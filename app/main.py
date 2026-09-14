@@ -20,9 +20,9 @@ from datetime import datetime, timezone
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
-from . import metrics, reporter
+from . import metrics, promotion, reporter
 from .config import Config, ConfigError, load_config
-from .db import Database
+from .db import Database, RunHistoryUnavailable
 from .errors import QuerySyntaxError
 from .executor import Executor
 from .logger import configure_logging, get_logger, set_run_id
@@ -134,6 +134,11 @@ class Pipeline:
                 started_at=datetime.now(timezone.utc),
             )
 
+            # Before the run's own row is written, so the guard can never find
+            # the run it is guarding.
+            if config.environment == "prod":
+                self._apply_run_once_guard(run)
+
             self._db.record_run_start(run)
 
             with open(local_path, "r", encoding="utf-8") as handle:
@@ -141,33 +146,83 @@ class Pipeline:
 
             log.info("read file", lines=len(raw_lines))
 
-            valid = self._validate_all(run, raw_lines)
-
-            # Execution only starts if every line is well formed. Validating
-            # the whole file first is what keeps a typo on line 10 from leaving
-            # lines 1 to 9 applied and the file in the failed bucket - which
-            # would be the worst of both outcomes, since nothing in the failed
-            # bucket looks like it ran.
-            if run.failed_lines:
-                log.warning(
-                    "file failed validation, nothing was executed",
-                    fail_syntax=run.syntax_fail_count,
-                    not_attempted=len(valid),
-                )
-                self._record_not_run(run, valid)
+            if run.refusal_reason:
+                log.warning("prod refused the file, nothing was executed", reason=run.refusal_reason)
+                self._record_refused(run, raw_lines)
             else:
-                self._execute_all(run, valid)
+                valid = self._validate_all(run, raw_lines)
+
+                # Execution only starts if every line is well formed. Validating
+                # the whole file first is what keeps a typo on line 10 from
+                # leaving lines 1 to 9 applied and the file in the failed bucket -
+                # which would be the worst of both outcomes, since nothing in the
+                # failed bucket looks like it ran.
+                if run.failed_lines:
+                    log.warning(
+                        "file failed validation, nothing was executed",
+                        fail_syntax=run.syntax_fail_count,
+                        not_attempted=len(valid),
+                    )
+                    self._record_not_run(run, valid)
+                else:
+                    self._execute_all(run, valid)
 
             run.complete()
             self._finish(run, key)
             return run
 
+        except RunHistoryUnavailable as error:
+            log.error(
+                "could not read run history, so prod cannot tell whether this file has "
+                "run before - leaving it in the input bucket to try again",
+                file_name=key,
+                error=str(error),
+            )
+            raise
         except Exception as error:
             log.exception("run failed unexpectedly", file_name=key, error=str(error))
             raise
         finally:
             _remove_quietly(local_path)
             set_run_id(None)
+
+    def _apply_run_once_guard(self, run: RunResult) -> None:
+        """Decide whether prod may run this file, before anything else happens.
+
+        The promotion gate in scripts/promote.sh is what puts a file here, but
+        the input bucket is only a bucket - so prod checks for itself that the
+        file was promoted and has not run before. When run history cannot be
+        read nothing is decided: RunHistoryUnavailable propagates and the file
+        waits for the next polling cycle. A production file is never run on the
+        assumption that it has not run already.
+        """
+        prior = self._db.prior_prod_runs(run.file_hash)
+        authorising = self._db.authorising_qa_run(run.file_hash)
+
+        run.promoted_from_run_id = authorising
+        run.refusal_reason = promotion.prod_refusal(prior, authorising)
+
+        if run.refusal_reason is None:
+            log.info("prod run authorised", promoted_from_run_id=authorising)
+
+    def _record_refused(self, run: RunResult, raw_lines: list[str]) -> None:
+        """Every query line of a refused file, as not_run.
+
+        Not validated first: nothing in a refused file is going to run, so
+        whether a line would have is beside the point. Recorded all the same,
+        so a refused file's report accounts for every line in it too.
+        """
+        for line_number, raw in enumerate(raw_lines, start=1):
+            if is_skippable(raw):
+                run.skipped_lines += 1
+                continue
+            run.lines.append(
+                LineResult(
+                    line_number=line_number,
+                    raw_query=raw.rstrip("\n"),
+                    status=LineStatus.NOT_RUN,
+                )
+            )
 
     def _validate_all(
         self, run: RunResult, raw_lines: list[str]
@@ -264,6 +319,19 @@ class Pipeline:
         config = self._config
         succeeded = run.status == RunStatus.SUCCESS
 
+        # Issued before the reports are written, so both reports and the email
+        # carry it. Only qa issues tokens: a qa run is the validation, and prod
+        # is where a validated file is spent.
+        if succeeded and config.environment == "qa":
+            run.promotion_token, run.token_expires_at = promotion.issue_token(
+                run.completed_at, config.promotion_token_ttl_hours
+            )
+            log.info(
+                "issued promotion token",
+                promotion_token=run.promotion_token,
+                token_expires_at=run.token_expires_at.isoformat(),
+            )
+
         self._s3.upload_text(
             config.buckets.reports_json,
             reporter.report_key(key, run.run_id, "json"),
@@ -288,12 +356,23 @@ class Pipeline:
         if self._notifier.send_run_summary(run):
             self._db.record_notification(
                 run,
-                "success" if succeeded else "failure",
+                _NOTIFICATION_TYPE.get(run.status, "failure"),
                 self._config.notifier.recipients,
             )
 
         metrics.record_run(run)
 
+        # Only the fields this run has, so a qa line does not carry an empty
+        # refusal_reason and a prod line an empty promotion_token.
+        outcome = {
+            key: value
+            for key, value in (
+                ("promotion_token", run.promotion_token),
+                ("promoted_from_run_id", run.promoted_from_run_id),
+                ("refusal_reason", run.refusal_reason),
+            )
+            if value
+        }
         log.info(
             "run finished",
             status=run.status,
@@ -303,7 +382,15 @@ class Pipeline:
             fail_syntax=run.syntax_fail_count,
             fail_execution=run.execution_fail_count,
             duration_ms=run.duration_ms,
+            **outcome,
         )
+
+
+_NOTIFICATION_TYPE = {
+    RunStatus.SUCCESS: "success",
+    RunStatus.FAILED: "failure",
+    RunStatus.REFUSED: "refused",
+}
 
 
 def _remove_quietly(path: str) -> None:

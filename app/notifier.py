@@ -80,8 +80,14 @@ class Notifier:
             return False
 
 
+_SUBJECT_OUTCOME = {
+    RunStatus.SUCCESS: "SUCCESS",
+    RunStatus.REFUSED: "REFUSED",
+}
+
+
 def _subject(run: RunResult) -> str:
-    outcome = "SUCCESS" if run.status == RunStatus.SUCCESS else "FAILED"
+    outcome = _SUBJECT_OUTCOME.get(run.status, "FAILED")
     return f"[mongo-dcu-pipeline] [{run.environment}] {outcome}: {run.file_name}"
 
 
@@ -94,6 +100,10 @@ def _body(run: RunResult) -> str:
         f"Started     : {run.started_at.isoformat()}",
         f"Duration    : {run.duration_ms} ms",
         f"Status      : {run.status.upper()}",
+    ]
+    if run.promoted_from_run_id:
+        lines.append(f"Promoted    : from qa run {run.promoted_from_run_id}")
+    lines += [
         "",
         f"Queries     : {run.total_lines}",
         f"  succeeded : {run.success_count}",
@@ -105,6 +115,25 @@ def _body(run: RunResult) -> str:
 
     if run.status == RunStatus.SUCCESS:
         lines.append("Every query succeeded. The file was moved to the successful bucket.")
+        if run.promotion_token:
+            expires = f"{run.token_expires_at:%Y-%m-%d %H:%M:%S} UTC" if run.token_expires_at else "-"
+            lines += [
+                "",
+                f"Promotion token : {run.promotion_token}",
+                f"Token expires   : {expires}",
+                "",
+                "To run this exact file in prod - byte for byte, once, before the token expires:",
+                f"  scripts/promote.sh --file <path to {run.file_name}> --token {run.promotion_token}",
+                "",
+            ]
+    elif run.status == RunStatus.REFUSED:
+        lines += [
+            "prod REFUSED this file. Nothing in it was executed, and it has been moved",
+            "to the failed bucket.",
+            "",
+            f"  {run.refusal_reason}",
+            "",
+        ]
     else:
         lines.append(
             "The file was NOT applied. It has been moved to the failed bucket in its"
