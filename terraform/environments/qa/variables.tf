@@ -25,13 +25,13 @@ variable "state_bucket" {
 variable "ses_sender" {
   description = "Verified SES address run summary emails are sent from. SES starts in sandbox mode, where the recipient must be verified too."
   type        = string
-  default     = "enrique.ruben.coello@gmail.com"
+  default     = "enrique.coello@gmail.com"
 }
 
 variable "ses_recipient" {
   description = "Where run summary emails go."
   type        = string
-  default     = "enrique.ruben.coello@gmail.com"
+  default     = "enrique.coello@gmail.com"
 }
 
 variable "poll_interval_seconds" {

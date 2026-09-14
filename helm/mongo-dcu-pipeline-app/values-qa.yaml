@@ -1,0 +1,7 @@
+# qa: sizing and tuning only. Environment facts - image, IAM role, buckets,
+# region - come from ansible/generated/values-qa.yaml, never from here.
+
+config:
+  # Verbose on purpose. qa is where a file is understood before it is promoted,
+  # and the log is the narrative Splunk ingests in Phase 11.
+  LOG_LEVEL: DEBUG

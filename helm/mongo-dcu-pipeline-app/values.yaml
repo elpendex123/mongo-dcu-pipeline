@@ -1,0 +1,73 @@
+# Defaults for the application chart. Three layers, later files winning:
+#
+#   values.yaml                           this file - safe defaults, nothing environment-specific
+#   values-<env>.yaml                     per-environment sizing and tuning, committed
+#   ansible/generated/values-<env>.yaml   per-session facts from Terraform: image, IAM role,
+#                                         bucket names, region (gitignored, rebuilt every apply)
+#
+#   helm upgrade --install mongo-dcu-pipeline-app helm/mongo-dcu-pipeline-app \
+#     --namespace qa -f helm/mongo-dcu-pipeline-app/values-qa.yaml -f ansible/generated/values-qa.yaml
+
+image:
+  # Both required. The generated values file supplies them.
+  repository: ""
+  # A commit tag. "latest" is refused at render time: a moving tag cannot be
+  # rolled back to, because it no longer names what was running.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  # Never created here. The service account is the Kubernetes half of the IRSA
+  # binding whose IAM half Terraform wrote, and Ansible creates it. A chart
+  # able to rename it could silently break the only identity the role trusts.
+  create: false
+  name: ""
+  # Informational - the annotation lives on the service account itself.
+  roleArn: ""
+
+# Non-secret environment variables, rendered into a ConfigMap. The generated
+# values add the environment-specific keys; these are the ones that are the
+# same everywhere. APP_ENV, AWS_DEFAULT_REGION and S3_INPUT_BUCKET are required
+# and checked at render time.
+config:
+  LOG_LEVEL: INFO
+  MONGO_DATABASE: mongo_dcu
+  MONGO_COLLECTION: properties
+  LOG_DIR: /var/log/mongo-dcu
+  WORK_DIR: /tmp/mongo-dcu
+
+# Kubernetes Secrets mounted with envFrom, created by the Ansible secrets bridge.
+secretRefs: []
+
+metrics:
+  port: 9090
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 192Mi
+  limits:
+    memory: 384Mi
+
+# The image runs as a named user (USER appuser). The kubelet cannot prove a name
+# is not root, so the Pod Security Standard the namespace enforces refuses the
+# pod unless the number is stated.
+podSecurity:
+  runAsUser: 1001
+  runAsGroup: 1001
+
+# Long enough to finish a file. On SIGTERM the application stops after the file
+# in flight rather than abandoning it half-applied; this is how long Kubernetes
+# waits before killing it anyway.
+terminationGracePeriodSeconds: 120
+
+# Scratch space. The root filesystem is read-only, so the log directory (which
+# the Splunk sidecar will share in Phase 11) and the download directory are
+# volumes.
+volumes:
+  logsSizeLimit: 256Mi
+  tmpSizeLimit: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

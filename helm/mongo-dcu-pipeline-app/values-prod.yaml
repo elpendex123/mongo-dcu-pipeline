@@ -1,0 +1,12 @@
+# prod: sizing and tuning only. Environment facts come from
+# ansible/generated/values-prod.yaml once the prod stack exists (Phase 9).
+
+config:
+  LOG_LEVEL: INFO
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 192Mi
+  limits:
+    memory: 384Mi

@@ -1,0 +1,22 @@
+{{- /*
+Keys the application cannot run correctly without, checked at render time.
+AWS_DEFAULT_REGION is on the list because without it botocore's credential
+provider calls the global STS endpoint, which a VPC with no internet route
+cannot reach - the pod starts, then hangs on its first AWS call (issue 17).
+*/ -}}
+{{- range list "APP_ENV" "AWS_DEFAULT_REGION" "AWS_REGION" "S3_INPUT_BUCKET" "S3_SUCCESSFUL_BUCKET" "S3_FAILED_BUCKET" "S3_REPORTS_JSON_BUCKET" "S3_REPORTS_LOG_BUCKET" }}
+{{- if not (hasKey $.Values.config .) }}
+{{- fail (printf "config.%s is required - render ansible/generated/values-<env>.yaml and pass it with -f" .) }}
+{{- end }}
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.config }}
+  {{ $key }}: {{ $value | toString | quote }}
+  {{- end }}
+  METRICS_PORT: {{ .Values.metrics.port | toString | quote }}

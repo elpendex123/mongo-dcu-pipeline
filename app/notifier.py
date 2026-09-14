@@ -17,6 +17,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 from .config import NotifierSettings
 from .logger import get_logger
 from .models import RunStatus, RunResult
+from .s3_client import AWS_CLIENT_CONFIG
 
 log = get_logger("notifier")
 
@@ -26,7 +27,14 @@ MAX_FAILURES_IN_EMAIL = 20
 class Notifier:
     def __init__(self, settings: NotifierSettings, region: str) -> None:
         self._settings = settings
-        self._client = boto3.client("ses", region_name=region) if settings.enabled else None
+        # The same bounded timeouts as S3. An email that cannot be sent is logged
+        # and the run carries on; an email call that hangs would stop the
+        # polling loop behind it.
+        self._client = (
+            boto3.client("ses", region_name=region, config=AWS_CLIENT_CONFIG)
+            if settings.enabled
+            else None
+        )
 
     def send_run_summary(self, run: RunResult) -> bool:
         """Send the summary for a finished run.

@@ -17,6 +17,7 @@ Environment:
     OWN_BUCKET                a bucket the role should reach
     FOREIGN_BUCKET            a bucket belonging to another environment
     OWN_SECRET                a secret the role should be able to read
+    AWS_DEFAULT_REGION        the region botocore uses, and the SES hostname's region
 """
 
 from __future__ import annotations
@@ -201,6 +202,18 @@ def own_secret() -> str:
     return f"read {name} through the Secrets Manager endpoint ({len(value)} characters, not printed)"
 
 
+def ses_endpoint() -> str:
+    # The run summary email goes through SES, which is one more AWS API this VPC
+    # can only reach through an interface endpoint. boto3's SES client calls
+    # email.<region>.amazonaws.com; without the endpoint that name resolves to
+    # a public address and the send hangs, the way STS did (issue 17). No
+    # email is sent - this proves the path, not the permission.
+    host = f"email.{os.environ.get('AWS_DEFAULT_REGION', 'us-east-1')}.amazonaws.com"
+    resolved = resolves_privately(host)
+    port_open(host, 443)
+    return f"{resolved}, port 443 open"
+
+
 def node_credentials_unreachable() -> str:
     # The launch template sets the metadata hop limit to 1. A pod is one hop
     # further from the metadata service than the node is, so the token response
@@ -234,6 +247,7 @@ def main() -> int:
     run("S3: own input bucket readable", own_bucket)
     run("S3: another environment's bucket denied", foreign_bucket)
     run("Secrets Manager: own secret readable", own_secret)
+    run("SES API reachable through its endpoint", ses_endpoint)
     run("node role credentials unreachable from the pod", node_credentials_unreachable)
 
     failed = [r["check"] for r in RESULTS if not r["ok"]]

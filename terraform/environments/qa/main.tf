@@ -176,6 +176,7 @@ module "iam" {
   environment = "qa"
 
   bucket_arns = values(module.buckets.bucket_arns)
+  ses_sender  = var.ses_sender
 
   # Two prefixes: this environment's own secrets, and the shared data tier's
   # MySQL credential, which is stored once rather than copied per environment.

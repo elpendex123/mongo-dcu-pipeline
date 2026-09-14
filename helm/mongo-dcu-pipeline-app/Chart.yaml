@@ -1,0 +1,11 @@
+apiVersion: v2
+name: mongo-dcu-pipeline-app
+description: >-
+  The mongo-dcu-pipeline batch application - one pod that polls S3 for files of
+  MongoDB queries, validates and runs them against DocumentDB, and routes each
+  file by the result.
+type: application
+# The chart's own version. What actually deploys is image.tag, which names a
+# commit; appVersion is informational only.
+version: 0.1.0
+appVersion: "0.1.0"

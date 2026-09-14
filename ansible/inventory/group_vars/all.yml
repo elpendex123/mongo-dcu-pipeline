@@ -37,9 +37,10 @@ image_tag: ""
 # instead - the Dockerfile's default APP_UID.
 app_uid: 1001
 
-# SES starts in sandbox mode, where sender and recipient must both be verified
-# by clicking a link in an email. Off until that has been done.
-ses_enabled: false
+# SES is in sandbox mode, where sender and recipient must both be verified. The
+# project sends from and to one address, verified in us-east-1, so one
+# verification covers both.
+ses_enabled: true
 
 helm_repositories:
   - name: prometheus-community

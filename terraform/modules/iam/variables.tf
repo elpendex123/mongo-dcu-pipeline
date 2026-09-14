@@ -18,6 +18,11 @@ variable "secret_name_prefixes" {
   type        = list(string)
 }
 
+variable "ses_sender" {
+  description = "The only address this role may send email from. SES evaluates it against the ses:FromAddress condition key."
+  type        = string
+}
+
 variable "create_role" {
   description = "Whether to create the IRSA role. An explicit boolean because Terraform must know how many roles to create at plan time, and on the apply that creates the cluster the provider ARN is not known yet."
   type        = bool

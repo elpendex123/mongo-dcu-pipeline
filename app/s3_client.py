@@ -12,6 +12,7 @@ import hashlib
 import os
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import ClientError
 
 from .logger import get_logger
@@ -20,12 +21,25 @@ log = get_logger("s3")
 
 _HASH_CHUNK_BYTES = 1024 * 1024
 
+# Bounded, deliberately. botocore's defaults - a 60-second connect timeout,
+# retried - let one unreachable endpoint hold a call for minutes with nothing
+# logged, which in a VPC with no internet route is exactly how a missing
+# endpoint presents. A few seconds to connect, then a clear error, is a failure
+# someone can see.
+AWS_CLIENT_CONFIG = Config(
+    connect_timeout=5,
+    read_timeout=30,
+    retries={"max_attempts": 3, "mode": "standard"},
+)
+
 
 class S3Client:
     """The pipeline's view of S3, in its own vocabulary rather than boto3's."""
 
     def __init__(self, region: str, endpoint_url: str | None = None) -> None:
-        self._client = boto3.client("s3", region_name=region, endpoint_url=endpoint_url)
+        self._client = boto3.client(
+            "s3", region_name=region, endpoint_url=endpoint_url, config=AWS_CLIENT_CONFIG
+        )
 
     def list_input_files(self, bucket: str) -> list[str]:
         """Keys awaiting processing, oldest first.

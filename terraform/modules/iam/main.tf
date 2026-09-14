@@ -66,14 +66,21 @@ data "aws_iam_policy_document" "app" {
     resources = ["arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/${var.project}/${var.environment}*"]
   }
 
-  # SES has no resource-level permission for sending, so this cannot be scoped
-  # to a bucket the way the others are. The condition narrows it instead: this
-  # role may send only from the project's verified address.
+  # The condition is what scopes this: the role may send only with the
+  # project's own address as the sender, even if other identities are verified
+  # in the account later. An earlier version of this comment described that
+  # condition while the statement had none (issue 19).
   statement {
-    sid       = "SendRunSummaryEmail"
+    sid       = "SendRunSummaryEmailFromTheProjectAddress"
     effect    = "Allow"
     actions   = ["ses:SendEmail", "ses:SendRawEmail"]
     resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "ses:FromAddress"
+      values   = [var.ses_sender]
+    }
   }
 }
 

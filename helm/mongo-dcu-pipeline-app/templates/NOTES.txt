@@ -1,0 +1,15 @@
+{{ include "app.fullname" . }} is deployed to {{ .Release.Namespace }}, running {{ include "app.image" . }}.
+
+Follow the pipeline's narrative:
+  kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "app.fullname" . }} -f
+
+Give it a file:
+  aws s3 cp samples/all-good.txt s3://{{ .Values.config.S3_INPUT_BUCKET }}/
+
+Metrics:
+  kubectl -n {{ .Release.Namespace }} port-forward deploy/{{ include "app.fullname" . }} 19090:{{ .Values.metrics.port }}
+  curl -s localhost:19090/metrics | grep files_processed_total
+
+Revision history, and how to go back:
+  helm -n {{ .Release.Namespace }} history {{ .Release.Name }}
+  helm -n {{ .Release.Namespace }} rollback {{ .Release.Name }} <revision> --wait
