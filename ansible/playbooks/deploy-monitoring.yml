@@ -43,7 +43,9 @@
       ansible.builtin.assert:
         that: mirror_check.rc == 0
         fail_msg: "{{ mirror_check.stdout_lines | select('search', 'missing') | list + ['run scripts/mirror-images.sh, then this playbook again'] }}"
-        success_msg: "{{ mirror_check.stdout_lines | select('search', 'mirrored') | list | length }} images present in the mirror"
+        # Rows that start with the state, not every line mentioning it - the
+        # script's summary line says "mirrored" too.
+        success_msg: "{{ mirror_check.stdout_lines | select('match', '^\\s+mirrored') | list | length }} images present in the mirror"
 
     - name: Make the output directory
       ansible.builtin.file:

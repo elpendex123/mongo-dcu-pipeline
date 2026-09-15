@@ -31,6 +31,8 @@ same pattern applies to a different service.
 | 21 | 8 | LOG_LEVEL=DEBUG turned on pymongo's driver logging: 57% of all lines | Reading the first pod's log before reading its results |
 | 22 | 8 | A sample's own comment said it was safe to rerun; its README, correctly, said it was not | Re-uploading it to prove the rollback |
 | 23 | 9 | Ansible refused to start when its output was captured by a background job | Its first run in the background, which printed one line and exited |
+| 24 | 10 | Copying an image through Docker's local store failed three different ways; a registry-to-registry copy did not | The mirror script's first run, which copied seven images and stopped on the eighth |
+| 25 | 10 | The failure-rate alert could not see the failures that created its series | Two failed files, a counter at 2, and an alert that stayed inactive |
 
 ---
 
@@ -837,6 +839,15 @@ here the network was right and the URL was wrong.
 were counted, and the hung one was reproduced in isolation with a timeout
 short enough to see the request.
 
+**Found again in Phase 10 - differently.** Reproducing this on purpose, to
+test the polling-stalled alert, did not work: with `AWS_DEFAULT_REGION` removed
+from the application's ConfigMap the pod polled normally. Its spec showed why -
+the EKS pod identity webhook now injects `AWS_DEFAULT_REGION` itself, alongside
+`AWS_REGION`, where in Phase 7 it injected only `AWS_REGION`. botocore was the
+same version (1.43.93); the platform changed underneath. The chart keeps its
+explicit value and its render-time guard regardless: a default that a managed
+component supplies today is not a default the application should depend on.
+
 ---
 
 ## 18. The status playbook built a list as text
@@ -1112,6 +1123,114 @@ differently under a job runner than in a terminal, for reasons that have nothing
 to do with the tool's work. The Jenkins jobs in Phase 12 run every playbook with
 captured output, so this is the form they will use.
 
+**Found again in Phase 10:** not only background jobs. Under a tool runner
+that captures output even for a foreground command, `ansible-playbook
+--syntax-check` refused in exactly the same way. The redirect is the form for
+any invocation whose output is not a terminal.
+
 **Why it was caught.** The background job reported a failure within seconds,
 where the configuration normally takes five minutes - and a failure that fast
 is a failure to start, not a failure of the work.
+
+---
+
+## 24. Copying an image through Docker's local store failed three ways
+
+**Phase 10.** Mirroring kube-prometheus-stack's images into ECR.
+
+**Symptom.** `scripts/mirror-images.sh` pulled, tagged and pushed seven images
+cleanly, then stopped on the eighth, `registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.20.0`:
+
+```
+image with reference .../kube-state-metrics:v2.20.0 was found but does not provide the specified platform (linux/amd64)
+```
+
+The pulled image was `linux/amd64` by `docker image inspect`. Each fix then
+failed differently:
+
+| Attempt | Result |
+|---|---|
+| `docker push --platform linux/amd64` | `does not provide the specified platform` |
+| `docker push`, no platform | `does not provide any platform` |
+| Pull by the amd64 manifest's digest, tag, push | `NotFound: content digest sha256:ebddc55...: not found` |
+| Remove every local record, pull by digest fresh, push | Docker calls it a multi-platform index and reports a different missing layer |
+
+**What was actually wrong.** Two things, both in Docker's containerd image
+store (`docker info` reports `io.containerd.snapshotter.v1`):
+
+1. This image is published as a **Docker v2 manifest list**, the older format -
+   the other seven are OCI indexes or single manifests. The store recorded the
+   tag without the per-platform details a platform-filtered push matches on.
+2. Several of its layers were **already present from other images**. The store
+   keeps a layer it has unpacked as a snapshot, and does not fetch the
+   compressed blob again - but a push needs the compressed blob. Layer
+   `ebddc55` is one of the amd64 image's own layers; it simply was not there to
+   send.
+
+Neither is about the image. Both are about routing a registry-to-registry copy
+through a local store built for running containers.
+
+**Fix.** Do not route it through the store. `crane copy`, from Google's
+go-containerregistry, streams a manifest and its blobs from one registry to
+another, and takes a platform:
+
+```bash
+aws ecr get-login-password --region us-east-1 \
+  | docker run -i --rm --entrypoint /busybox/sh gcr.io/go-containerregistry/crane:debug@sha256:e78770b3... -c \
+    'read -r p; printf "%s" "$p" | crane auth login <registry> -u AWS --password-stdin && crane copy --platform linux/amd64 <source> <destination>'
+```
+
+The copy took three seconds, and the pushed digest was exactly upstream's amd64
+manifest. The script now copies every image this way, in one container, with
+the ECR password on stdin rather than in an argument or an environment variable
+where `ps` or `docker inspect` would show it. crane is pinned by digest, since
+it handles that password. The seven images pushed the first way were checked:
+every one is a single-platform manifest in ECR, so they were kept.
+
+**Generalises to.** Copying an image between registries and running an image
+are different jobs, and a local image store is built for the second. Use a
+registry-native tool - crane, skopeo, regctl - for the first, and pin it.
+
+**Why it was caught.** The script failed loudly on the one image that differed,
+and the dry-run's list made it obvious which seven were already safe.
+
+---
+
+## 25. The failure-rate alert could not see the failures that created its series
+
+**Phase 10.** The first live test of the application's alerts.
+
+**Symptom.** One good file and two bad ones went through qa. Prometheus had
+the counters right - `files_processed_total{status="failed"} = 2`,
+`{status="success"} = 1` - and `MongoDcuRunFailureRateHigh`, which fires above a
+50% failure ratio over at least two files, stayed `inactive`.
+
+**What was actually wrong.** A labelled counter in `prometheus_client` has no
+series until `.labels(...)` is first called, which here was the first time a
+file finished with that status. So the first scrape to see
+`files_processed_total{status="failed"}` saw it already at 2. The rule uses
+`increase()`, which measures a rise between samples - and a series whose first
+sample is 2 has not risen, as far as Prometheus can tell. The failures that
+created the series are invisible to every rate and increase over it.
+
+That is not a quirk of the test. A pod starts, a batch of bad files is waiting,
+they fail - and the alert built to notice exactly that stays silent, because
+they were the first failures the pod ever counted. After a restart it happens
+again.
+
+Two more bad files, once the series existed, fired the alert within a minute -
+which proved the rule and the pipeline to Alertmanager, and confirmed the cause.
+
+**Fix.** `app/metrics.py` creates every known label combination at import, at
+zero - every file status including `refused`, both failure reasons, every line
+status. Each series exists from the first scrape, so the first failure is a
+rise from 0 to 1. `app/tests/test_metrics.py` asserts each one exists before any
+run.
+
+**Generalises to.** Initialise labelled counters to zero for every value you
+know in advance. Any alert or dashboard built on `rate()` or `increase()`
+silently discards whatever happened before a series first appeared - and "the
+first time it goes wrong" is the event an alert most needs to catch.
+
+**Why it was caught.** Testing the alert with real failures instead of
+trusting that a rule with valid syntax and correct counters would fire.

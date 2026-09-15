@@ -14,7 +14,7 @@ from __future__ import annotations
 from prometheus_client import Counter, Gauge, Histogram, start_http_server
 
 from .logger import get_logger
-from .models import LineStatus, RunResult
+from .models import LineStatus, RunResult, RunStatus
 
 log = get_logger("metrics")
 
@@ -56,6 +56,32 @@ FILES_WAITING = Gauge(
     "files_waiting",
     "Files sitting in the input bucket at the end of the last polling cycle.",
 )
+
+
+def _initialise_label_sets() -> None:
+    """Create every known label combination at zero, before anything happens.
+
+    A labelled counter has no series until .labels() is first called - so
+    Prometheus first sees files_processed_total{status="failed"} already at 1
+    or more. increase() needs two samples to see a rise, and the failures that
+    created the series never register: the first failures after a pod starts,
+    which is when failures are most likely, would never raise the failure-rate
+    alert (issue 25). Every series exists from the first scrape instead, at zero.
+    """
+    for status in (RunStatus.SUCCESS, RunStatus.FAILED, RunStatus.REFUSED):
+        FILES_PROCESSED.labels(status=status)
+    for reason in ("syntax", "execution"):
+        LINES_FAILED.labels(reason=reason)
+    for status in (
+        LineStatus.SUCCESS,
+        LineStatus.FAIL_SYNTAX,
+        LineStatus.FAIL_EXECUTION,
+        LineStatus.NOT_RUN,
+    ):
+        LINES_PROCESSED.labels(status=status)
+
+
+_initialise_label_sets()
 
 
 def start_metrics_server(port: int) -> None:

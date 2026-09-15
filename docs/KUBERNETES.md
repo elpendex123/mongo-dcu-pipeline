@@ -47,7 +47,9 @@ export NAMESPACE=$ENV
 | Control plane logs | Off | Billed per GB, and EKS creates the log group outside Terraform where a destroy leaves it behind |
 
 Cost: $0.10/hr for the control plane plus $0.0208/hr per node - **$0.142/hr**
-on top of the $0.164/hr the rest of qa and the data tier cost - **$0.306/hr** in all.
+on top of the $0.174/hr the rest of qa and the data tier cost - **$0.316/hr** in
+all, plus a few cents an hour of Container Insights observations
+([PROMETHEUS-GRAFANA.md](PROMETHEUS-GRAFANA.md#cost)).
 
 ## How a cluster works with no internet route
 
@@ -61,7 +63,7 @@ flowchart LR
         subgraph Nodes["2x t3.small"]
             POD["app pod"]
         end
-        EP["interface endpoints<br/>ecr.api  ecr.dkr  sts  ec2<br/>secretsmanager  logs  email"]
+        EP["interface endpoints<br/>ecr.api  ecr.dkr  sts  ec2<br/>secretsmanager  logs  email  monitoring"]
         S3GW["S3 gateway endpoint"]
         DOC[("DocumentDB")]
     end
@@ -91,6 +93,9 @@ like something else:
 | Pod gets IRSA credentials | `sts` endpoint, **and `AWS_DEFAULT_REGION` in the pod** - botocore ignores `AWS_REGION`, and with no region calls the global `sts.amazonaws.com` | The first AWS call hangs for minutes with no error (issue 17) |
 | Pod reaches MySQL | Peering, routes both ways, DNS resolution across the peering | Name resolves to a public address and the connection times out |
 | App sends the run summary email | `email` endpoint, whose private DNS answers `email.us-east-1.amazonaws.com` - the name boto3 calls | The first email hangs the polling loop behind it (issue 20) |
+| Monitoring images pull | The ECR mirror, filled by `scripts/mirror-images.sh` - quay.io, Docker Hub and registry.k8s.io are unreachable | `ImagePullBackOff` on every monitoring pod |
+| Grafana reads CloudWatch | `monitoring` endpoint, Grafana's IRSA role | CloudWatch panels time out |
+| Container Insights agent reads instance metadata | The agent runs on the host network, so the hop limit of 1 does not stop it | No `ContainerInsights` metrics, no log group |
 
 ## Three identities
 
@@ -121,7 +126,8 @@ service account could silently break the only identity the role trusts.
 | Namespace | Pod Security | Holds |
 |---|---|---|
 | `qa` (or `prod`) | `restricted`, enforced | The application, its service account, its Secrets, and the Ansible Jobs |
-| `monitoring` | Unlabelled | kube-prometheus-stack in Phase 10. node-exporter reads host paths and would be refused under `restricted` |
+| `monitoring` | Unlabelled | kube-prometheus-stack. node-exporter reads host paths and would be refused under `restricted` |
+| `amazon-cloudwatch` | Unlabelled, created by the add-on | The CloudWatch agent (host network) and its controller |
 
 `restricted` refuses a pod that runs as root, allows privilege escalation,
 keeps any Linux capability, or lacks a seccomp profile. The application image
@@ -139,10 +145,13 @@ t3.small = 3 x (4 - 1) + 2 = 11
 ```
 
 Before anything of this project's is scheduled, each node runs `aws-node` and
-`kube-proxy`, and the two CoreDNS replicas land on one node or the other. That
-leaves about 16 slots across the cluster - enough for the application,
-the Ansible Jobs, and kube-prometheus-stack in Phase 10. It is the reason
-`t3.micro` (4 pods per node) is not an option.
+`kube-proxy`, and the two CoreDNS replicas land on one node or the other.
+
+Measured with everything up in Phase 10 - the system add-ons, the CloudWatch
+agent and its controller, kube-prometheus-stack's seven pods and the
+application - the cluster ran **17 pods of 22**, with **43-46% of each node's
+memory available**. `t3.small` is enough; `t3.micro` (4 pods per node) never
+was. An Ansible Job or two on top still fits.
 
 ## Commands
 

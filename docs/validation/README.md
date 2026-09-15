@@ -17,6 +17,7 @@ form, so it can be practised by hand as well as pasted.
 | 7 | [EKS and Ansible](PHASE-07-eks-ansible.md) | A cluster with no internet route, IRSA, the secrets bridge, and twelve checks from inside a pod |
 | 8 | [Helm and the first cloud run](PHASE-08-helm-first-run.md) | The chart, a file processed in AWS with history and email, and a broken deploy rolled back |
 | 9 | [prod and the promotion gate](PHASE-09-promotion.md) | A qa token, the gate refusing a replayed token, a changed byte and an expired token, and prod refusing a file it has run or was never promoted |
+| 10 | [Observability](PHASE-10-observability.md) | Images mirrored into ECR, Prometheus scraping the application, Grafana reading CloudWatch under its own role, Container Insights through the hop limit, and both application alerts fired |
 
 ## Variables used in these guides
 
@@ -82,7 +83,7 @@ Enough to confirm nothing has regressed, without reading any single guide.
 cd $PROJECT_ROOT
 
 git status --short                                  # expect: empty
-.venv/bin/python -m pytest                          # expect: 131 passed
+.venv/bin/python -m pytest                          # expect: 140 passed
 terraform -chdir=terraform/bootstrap plan           # expect: No changes
 terraform -chdir=terraform/environments/dev plan    # expect: No changes
 terraform -chdir=terraform/environments/shared plan # expect: No changes

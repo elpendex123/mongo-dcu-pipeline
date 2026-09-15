@@ -1,8 +1,10 @@
 # ECR - the container registry
 
 One repository, `mongo-dcu-pipeline-app`, holding the application image that
-both qa and prod run. It lives in the **shared** Terraform stack
-(`terraform/environments/shared/`), not in either environment.
+both qa and prod run - and, since Phase 10, eight mirror repositories holding
+copies of the upstream images the monitoring stack needs. All of them live in
+the **shared** Terraform stack (`terraform/environments/shared/`), not in
+either environment.
 
 ## Variables used on this page
 
@@ -174,10 +176,44 @@ four seconds. The node group itself is in `terraform/modules/eks/`; this page is
 the registry half of it.
 
 **Images from public registries cannot be pulled this way.** quay.io, Docker
-Hub and registry.k8s.io are on the internet, which this VPC cannot reach. Any
-community chart - kube-prometheus-stack in Phase 10, the Splunk image in Phase
-11 - needs its images copied into ECR or served through an ECR pull-through
-cache first.
+Hub and registry.k8s.io are on the internet, which this VPC cannot reach. So
+they are copied in.
+
+## The mirror
+
+`kube-prometheus-stack` needs eight upstream images. Each is copied, once per
+chart version, to
+
+```
+950639281723.dkr.ecr.us-east-1.amazonaws.com/mongo-dcu-pipeline-mirror/<upstream path>:<tag>
+```
+
+and the chart's `global.imageRegistry` points at
+`<registry>/mongo-dcu-pipeline-mirror`, so every upstream path resolves
+unchanged beneath it.
+
+| Decision | Why |
+|---|---|
+| Copied, not an ECR pull-through cache | A pull-through cache for Docker Hub needs Docker Hub credentials kept in Secrets Manager. A copy needs none, and is pinned to exactly the tag the chart named on the day it was made |
+| The list comes from the chart | `scripts/mirror-images.sh` renders the chart with the project's own values and reads the image references out of it. A chart upgrade that adds an image shows up as `missing`, not as `ImagePullBackOff` |
+| `linux/amd64` only | The nodes are `t3.small`. Other architectures would be storage nothing runs |
+| Copied registry to registry, with crane | Pulling, tagging and pushing through Docker's local store failed three ways for one image (issue 24). crane streams the manifest and blobs straight across |
+| Immutable tags, three kept | A mirrored tag should keep meaning what upstream meant when it was copied |
+
+```bash
+# variable form
+$PROJECT_ROOT/scripts/mirror-images.sh --dry-run    # list, and what is already there
+$PROJECT_ROOT/scripts/mirror-images.sh              # copy whatever is missing
+$PROJECT_ROOT/scripts/mirror-images.sh --check      # exit 1 if anything is missing
+
+# expanded
+~/Documents/PROJECTS/mongo-dcu-pipeline/scripts/mirror-images.sh --dry-run
+```
+
+The repositories themselves are Terraform (`mirrored_repositories` in the shared
+stack); the script refuses to create one, and names the variable instead.
+`ansible/playbooks/deploy-monitoring.yml` runs `--check` before installing
+anything. The Splunk image in Phase 11 will need the same treatment.
 
 ## Cost
 

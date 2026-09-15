@@ -2,12 +2,19 @@
 # Copies the images kube-prometheus-stack needs into the project's ECR mirror.
 #
 # The clusters have no route to the internet, so quay.io, registry.k8s.io and
-# Docker Hub are unreachable from a node. This pulls each image here, where the
-# internet is, and pushes it to
+# Docker Hub are unreachable from a node. This copies each image, from here
+# where the internet is, to
 #
 #   <account>.dkr.ecr.<region>.amazonaws.com/mongo-dcu-pipeline-mirror/<upstream path>:<tag>
 #
 # which is exactly where the chart's global.imageRegistry points.
+#
+# The copy is registry to registry, with crane, and never passes through
+# Docker's local image store. Pulling, tagging and pushing through that store
+# failed for kube-state-metrics in three different ways: an upstream Docker v2
+# manifest list recorded without its platforms, then layers already present from
+# other images kept only as unpacked snapshots with nothing to push (issue 24).
+# crane streams the linux/amd64 manifest and its blobs straight across.
 #
 # The image list is not kept by hand. It is read from the chart itself -
 # rendered with the project's own values and the upstream registries - so a
@@ -39,6 +46,11 @@ fi
 
 require_tools helm aws
 [[ "$MODE" == "copy" ]] && require_tools docker
+
+# crane, run as a container so nothing has to be installed. Pinned by digest:
+# this image handles an ECR password, so it is not left to a moving tag. The
+# debug variant carries a shell, which the copy loop below needs.
+CRANE_IMAGE="gcr.io/go-containerregistry/crane:debug@sha256:e78770b31258a3846f878036d9c1f63fbe4c871f9f56990bf77fd95c013e3c1b"
 
 GROUP_VARS="$REPO_ROOT/ansible/inventory/group_vars/all.yml"
 CHART="$(sed -n 's/^monitoring_chart: *"\{0,1\}\([^"]*\)"\{0,1\} *$/\1/p' "$GROUP_VARS")"
@@ -108,20 +120,33 @@ case "$MODE" in
     exit 0 ;;
 esac
 
-info "logging in to $REGISTRY"
-aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$REGISTRY" >/dev/null
-
-# linux/amd64 only: the nodes are t3.small, and pushing one platform keeps the
+# One container for every copy. Its stdin carries the ECR password on the first
+# line and a "source destination" pair per image after it - the password never
+# appears as an argument or an environment variable, where `ps` or
+# `docker inspect` would show it, and dies with the container.
+#
+# linux/amd64 only: the nodes are t3.small, and mirroring one platform keeps the
 # mirror from storing layers for architectures nothing here will ever run.
-for ref in "${MISSING_IMAGES[@]}"; do
-  rest="${ref#*/}"
-  target="$REGISTRY/$PREFIX/$rest"
-  info "$ref"
-  docker pull --quiet --platform linux/amd64 "$ref" >/dev/null
-  docker tag "$ref" "$target"
-  docker push --quiet --platform linux/amd64 "$target" >/dev/null
-  ok "-> $target"
-done
+info "copying ${#MISSING_IMAGES[@]} image(s) with crane"
+# Inside an if, so a failed copy reaches the message below. As a bare pipeline
+# under set -e and pipefail, the script would exit on the failure first.
+if ! {
+  aws ecr get-login-password --region "$AWS_REGION"
+  for ref in "${MISSING_IMAGES[@]}"; do
+    printf '%s %s\n' "$ref" "$REGISTRY/$PREFIX/${ref#*/}"
+  done
+} | docker run -i --rm --entrypoint /busybox/sh "$CRANE_IMAGE" -c '
+    read -r password
+    printf "%s" "$password" | crane auth login "'"$REGISTRY"'" -u AWS --password-stdin >/dev/null 2>&1 \
+      || { echo "crane could not log in to the registry" >&2; exit 1; }
+    while read -r source destination; do
+      crane copy --platform linux/amd64 "$source" "$destination" 2>/dev/null \
+        || { echo "FAILED $source" >&2; exit 1; }
+      echo "copied $destination"
+    done
+  ' | while read -r line; do ok "$line"; done; then
+  die "the copy failed - rerun the script; images already copied are skipped"
+fi
 
 echo
 ok "copied ${#MISSING_IMAGES[@]} image(s); ${#IMAGES[@]} of ${#IMAGES[@]} now mirrored"

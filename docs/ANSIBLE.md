@@ -61,6 +61,14 @@ cd ~/Documents/PROJECTS/mongo-dcu-pipeline/ansible && ansible-playbook playbooks
 
 Order is fixed: apply `shared-data`, apply the environment, then this.
 
+Output going anywhere but a terminal - a background job, a CI step, a tool that
+captures it - needs its own file and an empty stdin, or Ansible refuses to
+start (issue 23):
+
+```bash
+ansible-playbook playbooks/configure-cluster.yml -e target_env=qa < /dev/null > configure-qa.log 2>&1
+```
+
 ## The playbooks
 
 | Playbook | Design item | Does |
@@ -73,8 +81,9 @@ Order is fixed: apply `shared-data`, apply the environment, then this.
 | `helm-repos.yml` | 5 | `prometheus-community` and `grafana` |
 | `documentdb-reset.yml` | 6 | Drop, reindex, reseed - as a Job inside the cluster |
 | `rds-schema.yml` | 7 | `sql/schema.sql` against the shared MySQL instance, from this machine |
-| `smoke-tests.yml` | 8 | Checks from this machine, then thirteen checks from a pod |
+| `smoke-tests.yml` | 8 | Checks from this machine, then fourteen checks from a pod |
 | `render-values.yml` | 9 | `ansible/generated/values-<env>.yaml` for the Helm chart |
+| `deploy-monitoring.yml` | - | kube-prometheus-stack from the ECR mirror, after checking every image is there; the CloudWatch dashboard. The `-05-deploy-monitoring` Jenkins job. See [PROMETHEUS-GRAFANA.md](PROMETHEUS-GRAFANA.md) |
 | `status.yml` | 10 | One JSON status document, the counterpart to `status.sh` |
 | `configure-cluster.yml` | - | 1-5, 7, 8 and 9 in dependency order. The `-02-configure-cluster` Jenkins job |
 
@@ -93,7 +102,8 @@ flowchart TD
     HR --> SCH[rds schema]
     SCH --> SMK[smoke tests]
     SMK --> VAL[render values]
-    VAL --> HELM["helm upgrade --install<br/>(see HELM.md)"]
+    VAL --> MON["deploy-monitoring<br/>(see PROMETHEUS-GRAFANA.md)"]
+    MON --> HELM["helm upgrade --install<br/>(see HELM.md)"]
     SEC -.-> RESET["documentdb-reset<br/>(run deliberately)"]
 ```
 
@@ -187,6 +197,7 @@ application's Secrets:
 | Another environment's bucket denied | The policy is scoped to one environment |
 | Own secret readable | The Secrets Manager endpoint and policy |
 | SES API reachable | The `email` endpoint, and that it answers the hostname boto3's SES client calls (issue 20) |
+| CloudWatch metrics API reachable | The `monitoring` endpoint Grafana's CloudWatch data source needs |
 | Node role credentials unreachable | The launch template's metadata hop limit |
 
 Each check prints one JSON line; the playbook reads them back from the pod log
@@ -200,4 +211,5 @@ current apply:
 | File | Written by |
 |---|---|
 | `values-<env>.yaml` | `render-values.yml` |
+| `monitoring-values-<env>.yaml` | `deploy-monitoring.yml` |
 | `status.json` | `status.yml` |

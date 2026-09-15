@@ -6,7 +6,8 @@ built into its templates, and the release lifecycle - install, upgrade, a
 deliberately broken upgrade, rollback, uninstall - with every command in both
 variable and expanded form.
 
-`kube-prometheus-stack`, the second chart the project uses, arrives in Phase 10.
+`kube-prometheus-stack`, the second chart the project uses, is installed before
+this one and has a page of its own: [PROMETHEUS-GRAFANA.md](PROMETHEUS-GRAFANA.md).
 
 ## Variables used on this page
 
@@ -50,12 +51,17 @@ helm/mongo-dcu-pipeline-app/
   values.yaml          safe defaults, nothing environment-specific
   values-qa.yaml       qa sizing and tuning (LOG_LEVEL=DEBUG)
   values-prod.yaml     prod sizing and tuning
+  files/
+    grafana-dashboard.json     the application's dashboard
   templates/
-    _helpers.tpl       names, labels, and the render-time guards
-    configmap.yaml     non-secret environment variables
-    deployment.yaml    the application pod
-    service.yaml       the metrics port, for Prometheus in Phase 10
-    NOTES.txt          printed after install: logs, a test upload, metrics, rollback
+    _helpers.tpl               names, labels, and the render-time guards
+    configmap.yaml             non-secret environment variables
+    deployment.yaml            the application pod
+    service.yaml               the metrics port
+    servicemonitor.yaml        tells Prometheus to scrape it         (monitoring.enabled)
+    prometheusrule.yaml        the application's three alerts        (monitoring.enabled)
+    dashboard-configmap.yaml   the dashboard, for Grafana's sidecar  (monitoring.enabled)
+    NOTES.txt                  printed after install: logs, a test upload, metrics, rollback
 ```
 
 There is no `serviceaccount.yaml` and no `hpa.yaml`, both deliberately - see
@@ -100,6 +106,24 @@ than producing a pod that starts and misbehaves:
 | Generated values not passed | `config.APP_ENV is required - render ansible/generated/values-<env>.yaml and pass it with -f` |
 | `image.tag` is `latest` | `image.tag must name a commit, not latest - a moving tag cannot be rolled back to` |
 | `AWS_DEFAULT_REGION` absent | `config.AWS_DEFAULT_REGION is required ...` - without it the pod hangs on its first AWS call ([issue 17](ISSUES.md)) |
+
+## Monitoring integration
+
+`monitoring.enabled` adds three objects: a `ServiceMonitor` for the metrics
+port, a `PrometheusRule` with the application's alerts, and a ConfigMap holding
+its Grafana dashboard. It is `false` in `values.yaml` and `true` in both
+environment files.
+
+The first two are kube-prometheus-stack's custom resources, so **the monitoring
+release goes in first**: an API server without those definitions refuses them,
+and the install fails on the first one. `helm lint` and `helm template` do not
+talk to the cluster and pass either way; the server-side dry run below does, and
+is where a missing definition shows.
+
+The application ships its own dashboard and rules rather than keeping them in
+the monitoring values: a chart version that renames a metric brings the queries
+that read it, in the same release. The rules are checked with promtool before
+they are committed - see [PROMETHEUS-GRAFANA.md](PROMETHEUS-GRAFANA.md#the-alerts).
 
 ## Render and check, without installing
 

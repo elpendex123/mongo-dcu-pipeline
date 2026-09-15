@@ -60,7 +60,8 @@ docs/         per-service notes, a validation guide per phase, the issues log
 
 ## Cost discipline
 
-The AWS footprint runs at roughly $0.59/hour fully up and is torn down after every session; qa on its own, with its cluster and the shared data tier, is about $0.31/hour.
+The AWS footprint runs at roughly $0.59/hour fully up and is torn down after every session; qa on its own, with its cluster, its monitoring and the shared data tier, is
+about $0.32/hour.
 
 | Script | Does |
 |---|---|
@@ -86,6 +87,7 @@ would remove the only record that they exist.
 | [docs/KUBERNETES.md](docs/KUBERNETES.md) | The cluster with no internet route, its three identities, and pod security |
 | [docs/ANSIBLE.md](docs/ANSIBLE.md) | The playbooks between apply and deploy: the secrets bridge, schema, seeding, and smoke tests |
 | [docs/HELM.md](docs/HELM.md) | The application chart: layered values, the decisions in its templates, and the upgrade and rollback lifecycle |
+| [docs/PROMETHEUS-GRAFANA.md](docs/PROMETHEUS-GRAFANA.md) | Prometheus, Grafana and CloudWatch in a cluster with no internet route: the image mirror, the dashboards and the alerts |
 | [docs/runbooks/PROMOTE-TO-PROD.md](docs/runbooks/PROMOTE-TO-PROD.md) | Promoting a file from qa to prod, and what each refusal means |
 | [docs/validation/](docs/validation/README.md) | Step-by-step checks for each completed phase |
 | [docs/ISSUES.md](docs/ISSUES.md) | Problems hit while building, what caused them and how they were fixed |
@@ -129,4 +131,11 @@ refused, by name, with nothing copied. Prod checks for itself as well, and
 refuses a file it has already run, or one put in its bucket without being
 promoted, before executing a single line.
 
-Still to come: observability, Splunk, and the Jenkins pipelines.
+And observability, in a cluster that cannot reach a public registry: Prometheus,
+Alertmanager and Grafana from images mirrored into ECR, scraping the application
+through its own ServiceMonitor and alerting on its own rules; Container Insights
+through the CloudWatch add-on; and Grafana reading DocumentDB, RDS and Container
+Insights from CloudWatch under an IAM role of its own - with a failure-rate
+alert fired by real failed files, not assumed.
+
+Still to come: Splunk and the Jenkins pipelines.

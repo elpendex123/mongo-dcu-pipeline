@@ -99,6 +99,12 @@ LAUNCH_TEMPLATES=$(aws ec2 describe-launch-templates --region "$AWS_REGION" \
   --filters "Name=launch-template-name,Values=$PROJECT-*" --query 'LaunchTemplates[].LaunchTemplateName' --output text 2>/dev/null \
   | tr '\t' '\n' | sed '/^$/d' || true)
 
+# Container Insights log groups. The add-on's agent creates them itself, outside
+# Terraform, so a destroy leaves them behind - with retention set to never
+# expire, storing and billing for as long as nobody notices.
+LOG_GROUPS=$(aws logs describe-log-groups --region "$AWS_REGION" --log-group-name-prefix "/aws/containerinsights/$PROJECT-" \
+  --query 'logGroups[].logGroupName' --output text 2>/dev/null | tr '\t' '\n' | sed '/^$/d' || true)
+
 if [[ "$SKIP_DEV" == "true" ]]; then
   SWEEP_ENVIRONMENTS=()
   for e in "${ENVIRONMENTS[@]}"; do [[ "$e" == "dev" ]] || SWEEP_ENVIRONMENTS+=("$e"); done
@@ -125,6 +131,7 @@ show "IAM roles"       "$IAM_ROLES"
 show "IAM policies"    "$IAM_POLICIES"
 show "OIDC providers"  "$OIDC_PROVIDERS"
 show "launch templates" "$LAUNCH_TEMPLATES"
+show "log groups"      "$LOG_GROUPS"
 
 # grep -c exits 1 when it counts zero, which under `set -e` would kill the
 # script in the middle of the arithmetic that is asking "is there anything to
@@ -135,7 +142,8 @@ TOTAL=$(( $(count_lines "${EKS_CLUSTERS:-}") + $(count_lines "${DOCDB_CLUSTERS:-
         + $(count_lines "${RDS_INSTANCES:-}") + $(count_lines "${VPCS:-}") \
         + $(count_lines "${SECRETS:-}") + ${#BUCKETS[@]} \
         + $(count_lines "${IAM_ROLES:-}") + $(count_lines "${IAM_POLICIES:-}") \
-        + $(count_lines "${OIDC_PROVIDERS:-}") + $(count_lines "${LAUNCH_TEMPLATES:-}") ))
+        + $(count_lines "${OIDC_PROVIDERS:-}") + $(count_lines "${LAUNCH_TEMPLATES:-}") \
+        + $(count_lines "${LOG_GROUPS:-}") ))
 if [[ "$TOTAL" -eq 0 ]]; then
   ok "nothing to delete - no unprotected project resources exist"
   exit 0
@@ -177,6 +185,16 @@ if [[ -n "$LAUNCH_TEMPLATES" ]]; then
     aws ec2 delete-launch-template --launch-template-name "$lt" --region "$AWS_REGION" >/dev/null 2>&1 \
       && ok "deleted launch template $lt" || warn "could not delete launch template $lt"
   done <<<"$LAUNCH_TEMPLATES"
+fi
+
+# After the cluster, so the agent is no longer writing to them.
+if [[ -n "$LOG_GROUPS" ]]; then
+  head1 "CloudWatch log groups"
+  while read -r lg; do
+    [[ -z "$lg" ]] && continue
+    aws logs delete-log-group --log-group-name "$lg" --region "$AWS_REGION" >/dev/null 2>&1 \
+      && ok "deleted log group $lg" || warn "could not delete log group $lg"
+  done <<<"$LOG_GROUPS"
 fi
 
 # ---------------------------------------------------------------- DocumentDB

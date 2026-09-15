@@ -256,6 +256,22 @@ else
   echo "  ${C_DIM}\$0.40 per secret per month, billed whether or not anything is running${C_RESET}"
 fi
 
+# ----------------------------------------------------- CloudWatch log groups
+# Created by the Container Insights agent, not by Terraform - which is why a
+# destroy does not remove them. Storage is cents a month; listed so a group
+# with no expiry does not quietly accumulate. nuke.sh deletes them.
+head1 "CloudWatch log groups  ${C_DIM}(created by the Container Insights agent, outside Terraform)${C_RESET}"
+log_groups=$(aws logs describe-log-groups --region "$AWS_REGION" --log-group-name-prefix "/aws/containerinsights/$PROJECT-" \
+  --output json 2>/dev/null | jq -r '.logGroups[]? | [.logGroupName, (.storedBytes // 0)] | @tsv' || true)
+if [[ -z "$log_groups" ]]; then
+  echo "  ${C_DIM}none${C_RESET}"
+else
+  while IFS=$'\t' read -r lg bytes; do
+    [[ -z "$lg" ]] && continue
+    printf '  %-62s %s\n' "$lg" "$(numfmt --to=iec --suffix=B "${bytes:-0}" 2>/dev/null || echo "${bytes}B")"
+  done <<<"$log_groups"
+fi
+
 # -------------------------------------------------- IAM and launch templates
 # Free - none of these bill. Listed because a leftover one has exactly the name
 # the next apply wants, and that apply then fails with EntityAlreadyExists.

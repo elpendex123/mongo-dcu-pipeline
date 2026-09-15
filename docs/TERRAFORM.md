@@ -36,6 +36,7 @@ terraform/
     rds/
     iam/                     # includes the IRSA role definitions
     secrets-manager/
+    observability/           # the CloudWatch add-on, and IAM roles for its agent and for Grafana
   environments/
     dev/                     # S3 buckets only
     qa/                      # full stack
@@ -242,6 +243,13 @@ bucket - more indirection than four protection resources written directly.
 
 Registry settings and the image tagging scheme are in [ECR.md](ECR.md).
 
+Since Phase 10 the shared stack also holds eight **mirror repositories**,
+`mongo-dcu-pipeline-mirror/<upstream path>`, one per image kube-prometheus-stack
+needs - the clusters cannot reach a public registry. They are listed in the
+`mirrored_repositories` variable, have immutable tags, keep three each, and are
+filled by `scripts/mirror-images.sh`. Permanent and nearly free, like the
+application repository: about 700 MB in all.
+
 ### The state bucket is tagged too
 
 `terraform/bootstrap` tags the state bucket `project=mongo-dcu-pipeline,
@@ -298,17 +306,18 @@ Two details that produce an *active* peering connection and a hung connection:
 | Module | Produces | Worth knowing |
 |---|---|---|
 | `vpc/` | VPC, subnets across 2 AZs, route tables, optionally an IGW | Private by default. `create_public_subnets` is true only for the data tier |
-| `vpc-endpoints/` | S3 gateway endpoint plus seven interface endpoints | Interface endpoints bill **per AZ**. Placed in one AZ deliberately: $0.07/hr instead of $0.14 |
+| `vpc-endpoints/` | S3 gateway endpoint plus eight interface endpoints | Interface endpoints bill **per AZ**. Placed in one AZ deliberately: $0.08/hr instead of $0.16 |
 | `documentdb/` | Cluster, one instance, subnet group, parameter group, security group | TLS enforced; the URI needs `replicaSet=rs0` and `retryWrites=false` |
 | `eks/` | Cluster, managed node group, launch template, add-ons, cluster and node roles, OIDC provider | Public API limited to your `/32`; metadata hop limit 1 so pods cannot use the node role; `STANDARD` upgrade policy. See [KUBERNETES.md](KUBERNETES.md) |
 | `rds/` | MySQL instance, subnet group, security group | Detects your public address at apply time for the admin rule |
 | `secrets-manager/` | One secret per entry, from a map | `recovery_window_days = 0`, or a destroyed environment leaves secrets billing and their names unusable |
 | `iam/` | The application policy, and the IRSA role when `create_role` is true | An explicit boolean, not inferred from the provider ARN, which is unknown at plan time on the apply that creates the cluster (issue 13) |
+| `observability/` | The `amazon-cloudwatch-observability` add-on, an IRSA role for its agent, an IRSA role for Grafana | The add-on runs Container Insights and nothing else it offers - see [PROMETHEUS-GRAFANA.md](PROMETHEUS-GRAFANA.md). Grafana's role trusts a service account named after the Helm release |
 
-### Why the endpoint list has seven entries
+### Why the endpoint list has eight entries
 
 The original design named four: S3, ECR, Secrets Manager, CloudWatch. Building it
-produced two more:
+added four more:
 
 - **`sts`** - IRSA obtains credentials by calling `AssumeRoleWithWebIdentity`.
   Without a route to STS, a pod with a perfectly correct role gets no
@@ -318,6 +327,9 @@ produced two more:
 - **`email`** - SES, for the run summary email. Added in Phase 8 (issue 20).
   Its private DNS answers both `email.us-east-1.amazonaws.com`, which boto3's
   SES client calls, and `email.us-east-1.api.aws`.
+- **`monitoring`** - CloudWatch metrics, which Grafana's CloudWatch data source
+  reads with `GetMetricData`. Added in Phase 10. The Container Insights agent
+  writes through `logs`, which was already there.
 
 And `ecr.api` and `ecr.dkr` are two endpoints, not one: authentication and
 metadata go to one service, layer downloads to another. Layers themselves come
